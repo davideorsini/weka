@@ -14,6 +14,7 @@ public class Manager{
 	
 	public static void main(String[] args) throws Exception{
 		ArrayList<Instance> instances;
+		Configuration firstConfig;
 		Configuration currentConfig;
 		Configuration bestConfig = null;
 		int nClust = Integer.parseInt(args[0]);
@@ -26,12 +27,9 @@ public class Manager{
 		Instances data = arff.getData();	
 		
 		currentConfig = new Configuration(data, nClust, seed);
-		currentConfig.printStatus();
-		
-		if(bestConfig == null || currentConfig.isBetterThan(bestConfig)){
-			bestConfig = currentConfig.clone();
-		}
-		
+		firstConfig = currentConfig.clone();
+		firstConfig.printStatus();		
+		bestConfig = currentConfig.clone();
 		
 		//tutte le combinazioni possibili
 		ArrayList<Integer> sizes = new ArrayList();
@@ -42,11 +40,11 @@ public class Manager{
 		
 		int counter =0;
 		while(true){
-			int[] currentCombination = comb.getCombination(); 
+			int[] currentCombination = comb.getCombination();
 			if(currentCombination == null)
 				break;
 			counter++;
-			currentConfig = new Configuration(data, nClust, comb.getCombination());
+			currentConfig = new Configuration(data, nClust, currentCombination);
 			if(currentConfig.isBetterThan(bestConfig)){
 				System.out.println("Found better status");
 				bestConfig = currentConfig.clone();

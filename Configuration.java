@@ -49,11 +49,7 @@ public class Configuration{
 			}
 			
 			getCentroidAt(index).addInstance(i);
-		}
-		for(Centroid c : clusterStatus){
-			
-		}
-		
+		}		
 	}
 	
 	private void buildNextConf(Instances data, int nClust, int[] centroidsID){
@@ -62,6 +58,9 @@ public class Configuration{
 		for(Integer i : centroidsID){
 			clusterStatus.add(new Centroid(i));
 		}
+//		for(int i=0;i<nClust;i++)
+			//	System.out.println(clusterStatus.get(i).getID());
+			//System.out.println(centroidsID[i]);
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			int j = 0;
@@ -116,12 +115,12 @@ public class Configuration{
 	
 	public boolean isBetterThan(Configuration c){
 		//controllo che il costo totale sia minore
-		//System.out.println(c.getTotalCost() + " >= " + result + "?");
-		if(c.getTotalCost() >= result){
+		System.out.println(c.getTotalCost() + " >= " + result + "?");
+		if(c.getTotalCost() < result){
 			return false;
 		}
-		
-		//controllo che non ci siano stati scambi tra i cluster
+		return true;
+		/*//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = true;
 		for(int i=0; i<clusterStatus.size(); i++){
 			if(!clusterStatus.get(i).equals(c.getCentroidAt(i))){
@@ -129,7 +128,7 @@ public class Configuration{
 				break;
 			}
 		}
-		return flag;
+		return flag;*/
 		
 	}
 	
