@@ -44,50 +44,10 @@ public class Manager{
 		
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
-		Instances data = arff.getData();
+		Instances data = arff.getData();	
 		
-//		currentConfiguration = chooseRandomCentroid(nClust, seed, data);
-		currentConfig = new Configuration(chooseRandomCentroid(nClust, seed, data));
-		
-		System.out.println();
-		for(int i=0; i<data.numInstances(); i++){
-			double[] costs = new double[currentConfig.retClusterCount()];
-			int j = 0;
-			for(int k=0; k<currentConfig.retClusterCount(); k++){
-				while(i == currentConfig.getCentroidAt(k).getID()){
-					i++;
-				}
-				costs[j] = currentConfig.getCentroidAt(k).euclideanDistance(i, data);
-				//System.out.println(costs[j] + " ");
-				j++;
-			}
-			int index = 0;
-			double min = Double.MAX_VALUE;
-			for(int jj=0; jj<currentConfig.retClusterCount(); jj++){
-				//System.out.println(costs[jj]);
-				if(costs[jj] < min){
-					min = costs[jj];
-					index = jj;
-				}
-			}
-			currentConfig.getCentroidAt(index).addInstance(i);
-		}
-		
-		//firstConfiguration = new ArrayList<Centroid>();
-		//firstConfiguration = clone(currentConfiguration);
-		//currentConfiguration.get(0).getInstanceList().clear();
-		//printStatus(currentConfiguration);
-		
-		//stampo i cluster
-		System.out.println();
-		//Commento per verificare il funzionamento di git
-		for(int h=0; h<currentConfig.retClusterCount(); h++){
-			System.out.print("[" + h + "]" + " ");
-			for(int k=0; k<currentConfig.getCentroidAt(h).getInstanceList().size();k++){
-				System.out.print(currentConfig.getCentroidAt(h).getInstanceList().get(k) + " ");
-			}
-			System.out.println();
-		}
+		currentConfig = new Configuration(data, nClust, seed);
+		currentConfig.printStatus();
 		
 		if(bestConfig == null || currentConfig.isBetterThan(bestConfig)){
 			bestConfig = currentConfig.clone();
@@ -101,9 +61,21 @@ public class Manager{
 		}
 		Combinations comb = new Combinations(sizes);
 		
+		currentConfig = new Configuration(data, nClust, comb.getCombination());
+	
+		currentConfig.printStatus();
+		//stampo i cluster
+//		System.out.println();
+//		for(int h=0; h<currentConfig.retClusterCount(); h++){
+//			System.out.print("[" + h + "]" + " ");
+//			for(int k=0; k<currentConfig.getCentroidAt(h).getInstanceList().size();k++){
+//				System.out.print(currentConfig.getCentroidAt(h).getInstanceList().get(k) + " ");
+//			}
+//			System.out.println();
+//		}
 	}
 	
-	public static ArrayList<Centroid> clone(ArrayList<Centroid> list){
+	/*public static ArrayList<Centroid> clone(ArrayList<Centroid> list){
 		ArrayList<Centroid> clone = new ArrayList<Centroid>();
 		for(int i=0; i<list.size(); i++){
 			Centroid c = new Centroid(list.get(i).getID());
@@ -112,7 +84,7 @@ public class Manager{
 		}
 		clone = (ArrayList<Centroid>) list.clone();
 		return clone;
-	}
+	}*/
 	
 	public static void printStatus(ArrayList<Centroid> cluster){
 		System.out.print("Centroids: ");
@@ -121,28 +93,7 @@ public class Manager{
 		}
 	}
 	
-	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, int seed, Instances data){
-		Random randInstanceIndex = new Random(seed);
-		ArrayList<Centroid> centroidList = new ArrayList<Centroid>();
-		int centroidIndex = randInstanceIndex.nextInt(data.numInstances());
-		centroidList.add(new Centroid(centroidIndex));
-		for(int i=0; i<nClust-1; i++){
-			int j=0;
-			centroidIndex = randInstanceIndex.nextInt(data.numInstances());
-			while(j<centroidList.size()){
-				if(centroidIndex != ((ArrayList<Centroid>) centroidList).get(j).getID()){
-					j++;
-				}
-				else{
-					centroidIndex = randInstanceIndex.nextInt(data.numInstances());
-				}
-			}
-			centroidList.add(new Centroid(centroidIndex));
-			centroidList.get(i).setClusterID(i);
-		}
-		//printStatus(centroidList);
-		return centroidList;
-	}
+	
 	
 	
 	public void checkCombinations(){

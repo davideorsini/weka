@@ -7,11 +7,11 @@ public class Combinations{
 	private int[] currentCombination;
 	private boolean flagEnded = false;
 	
-	public Combinations(int... ints){
+	/*public Combinations(int... ints){
 		clustersSize = ints.clone();
 		currentCombination = ints;
 		printArray(clustersSize);
-	}
+	}*/
 	
 	public Combinations(ArrayList<Integer> list) {
 		clustersSize = new int[list.size()];
@@ -57,9 +57,7 @@ public class Combinations{
 		}
 		
 		int[] toRet = currentCombination;
-		printArray(toRet);
 		decreaseUnit(currentCombination.length-1);
-		
 		return toRet;
 	}
 }
