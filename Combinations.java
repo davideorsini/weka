@@ -42,7 +42,7 @@ public class Combinations{
 				decreaseUnit(index - 1);
 			}
 			else{
-				System.out.println("Combination deplated");
+				System.out.println("Combination depleted");
 				flagEnded = true;
 			}
 		}

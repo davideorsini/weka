@@ -8,16 +8,22 @@ public class Configuration{
 	private double result = 0.0;
 	private int clusterCount;
 	
-	public Configuration(ArrayList<Centroid> clusterStatus){
-		this.clusterStatus = clusterStatus;
-		this.result = 0.0;
-		for(Centroid c : clusterStatus){
-			result += c.getTotalCost();
-		}
-		clusterCount = clusterStatus.size();
+	public Configuration(Instances data, int nClust, int seed){
+		buildFirstConf(data, nClust, seed);
+		computeCost();
 	}
 	
-	public Configuration(Instances data, int nClust, int seed){
+	public Configuration(Instances data, int nClust, int[] centroidsID) {
+		buildNextConf(data, nClust, centroidsID);
+		computeCost();
+	}
+	
+	private Configuration(ArrayList<Centroid> clusterStatus) {
+		this.clusterStatus = clusterStatus;
+		computeCost();
+	}
+	
+	private void buildFirstConf(Instances data, int nClust, int seed){
 		clusterCount = nClust;
 		clusterStatus = chooseRandomCentroid(nClust, seed, data);
 		for(int i=0; i<data.numInstances(); i++){
@@ -38,13 +44,19 @@ public class Configuration{
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
+					getCentroidAt(index).addTotalCost(costs[jj]);
 				}
 			}
+			
 			getCentroidAt(index).addInstance(i);
 		}
+		for(Centroid c : clusterStatus){
+			
+		}
+		
 	}
 	
-	public Configuration(Instances data, int nClust, int[] centroidsID){
+	private void buildNextConf(Instances data, int nClust, int[] centroidsID){
 		clusterCount = nClust;
 		clusterStatus = new ArrayList<Centroid>();
 		for(Integer i : centroidsID){
@@ -68,10 +80,19 @@ public class Configuration{
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
+					getCentroidAt(index).addTotalCost(costs[jj]);
 				}
 			}
 			getCentroidAt(index).addInstance(i);
 		}
+	}
+	
+	private void computeCost() {
+		this.result = 0.0;
+		for(Centroid c : clusterStatus){
+			result += c.getTotalCost();
+		}
+		clusterCount = clusterStatus.size();
 	}
 	
 	public void printStatus(){
@@ -95,6 +116,7 @@ public class Configuration{
 	
 	public boolean isBetterThan(Configuration c){
 		//controllo che il costo totale sia minore
+		//System.out.println(c.getTotalCost() + " >= " + result + "?");
 		if(c.getTotalCost() >= result){
 			return false;
 		}

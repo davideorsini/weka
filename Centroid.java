@@ -53,8 +53,8 @@ public class Centroid extends Instance{
 		this.clusterID = id;
 	}
 	
-	public void setTotalCost(double totalCost){
-		this.totalCost = totalCost;
+	public void addTotalCost(double cost){
+		totalCost += cost;
 	}
 	
 	public void addInstance(int id){

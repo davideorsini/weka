@@ -61,18 +61,21 @@ public class Manager{
 		}
 		Combinations comb = new Combinations(sizes);
 		
-		currentConfig = new Configuration(data, nClust, comb.getCombination());
-	
-		currentConfig.printStatus();
-		//stampo i cluster
-//		System.out.println();
-//		for(int h=0; h<currentConfig.retClusterCount(); h++){
-//			System.out.print("[" + h + "]" + " ");
-//			for(int k=0; k<currentConfig.getCentroidAt(h).getInstanceList().size();k++){
-//				System.out.print(currentConfig.getCentroidAt(h).getInstanceList().get(k) + " ");
-//			}
-//			System.out.println();
-//		}
+		int counter =0;
+		while(true){
+			int[] currentCombination = comb.getCombination(); 
+			if(currentCombination == null)
+				break;
+			counter++;
+			currentConfig = new Configuration(data, nClust, comb.getCombination());
+			if(currentConfig.isBetterThan(bestConfig)){
+				System.out.println("Found better status");
+				bestConfig = currentConfig.clone();
+			}
+//			currentConfig.printStatus();
+		}
+		bestConfig.printStatus();
+		System.out.println(counter);
 	}
 	
 	/*public static ArrayList<Centroid> clone(ArrayList<Centroid> list){
