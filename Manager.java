@@ -80,6 +80,7 @@ public class Manager{
 		
 		//stampo i cluster
 		System.out.println();
+		//Commento per verificare il funzionamento di git
 		for(int h=0; h<currentConfig.retClusterCount(); h++){
 			System.out.print("[" + h + "]" + " ");
 			for(int k=0; k<currentConfig.getCentroidAt(h).getInstanceList().size();k++){
