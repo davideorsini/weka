@@ -4,11 +4,13 @@ import java.util.*;
 import weka.core.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
+import weka.core.converters.ArffSaver;
 
 public class Manager{	
 	
@@ -32,6 +34,7 @@ public class Manager{
 		bestConfig = currentConfig.clone();
 		
 		boolean isChanged = true;
+		int c =0;
 		while(isChanged){
 			//tutte le combinazioni possibili
 			ArrayList<Integer> sizes = new ArrayList();
@@ -41,6 +44,7 @@ public class Manager{
 			Combinations comb = new Combinations(sizes);
 			if(!bestConfig.isChanged(firstConfig))
 				isChanged = false;
+			c++;
 			int counter =0;
 			while(true){
 				int[] currentCombination = comb.getCombination();
@@ -57,6 +61,12 @@ public class Manager{
 			bestConfig.printStatus();
 			System.out.println(counter);
 		}
+		System.out.println(c);
+		
+		/*ArffSaver saver = new ArffSaver();
+		saver.setInstances(data);
+		saver.setFile(new File("C:/Users/dav_0/Desktop/output.arff"));
+		saver.writeBatch();*/
 	}
 	
 	public static void printStatus(ArrayList<Centroid> cluster){
