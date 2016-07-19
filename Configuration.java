@@ -115,12 +115,15 @@ public class Configuration{
 	
 	public boolean isBetterThan(Configuration c){
 		//controllo che il costo totale sia minore
-		System.out.println(c.getTotalCost() + " >= " + result + "?");
+//		System.out.println(c.getTotalCost() + " >= " + result + "?");
 		if(c.getTotalCost() < result){
 			return false;
 		}
-		return true;
-		/*//controllo che non ci siano stati scambi tra i cluster
+		return true;		
+	}
+	
+	public boolean isChanged(Configuration c){
+		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = true;
 		for(int i=0; i<clusterStatus.size(); i++){
 			if(!clusterStatus.get(i).equals(c.getCentroidAt(i))){
@@ -128,8 +131,7 @@ public class Configuration{
 				break;
 			}
 		}
-		return flag;*/
-		
+		return flag;
 	}
 	
 	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, int seed, Instances data){

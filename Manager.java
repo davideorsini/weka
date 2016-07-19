@@ -31,28 +31,32 @@ public class Manager{
 		firstConfig.printStatus();		
 		bestConfig = currentConfig.clone();
 		
-		//tutte le combinazioni possibili
-		ArrayList<Integer> sizes = new ArrayList();
-		for (int i=0; i<nClust; i++) {
-			sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
-		}
-		Combinations comb = new Combinations(sizes);
-		
-		int counter =0;
-		while(true){
-			int[] currentCombination = comb.getCombination();
-			if(currentCombination == null)
-				break;
-			counter++;
-			currentConfig = new Configuration(data, nClust, currentCombination);
-			if(currentConfig.isBetterThan(bestConfig)){
-				System.out.println("Found better status");
-				bestConfig = currentConfig.clone();
+		boolean isChanged = true;
+		while(isChanged){
+			//tutte le combinazioni possibili
+			ArrayList<Integer> sizes = new ArrayList();
+			for (int i=0; i<nClust; i++) {
+				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
 			}
-//			currentConfig.printStatus();
+			Combinations comb = new Combinations(sizes);
+			if(!bestConfig.isChanged(firstConfig))
+				isChanged = false;
+			int counter =0;
+			while(true){
+				int[] currentCombination = comb.getCombination();
+				if(currentCombination == null)
+					break;
+				counter++;
+				currentConfig = new Configuration(data, nClust, currentCombination);
+				if(currentConfig.isBetterThan(bestConfig)){
+//					System.out.println("Found better status");
+					bestConfig = currentConfig.clone();
+				}
+	//			currentConfig.printStatus();
+			}
+			bestConfig.printStatus();
+			System.out.println(counter);
 		}
-		bestConfig.printStatus();
-		System.out.println(counter);
 	}
 	
 	public static void printStatus(ArrayList<Centroid> cluster){
