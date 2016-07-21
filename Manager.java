@@ -1,6 +1,8 @@
 package weka.clusterers;
 
 import java.util.*;
+
+import weka.attributeSelection.BestFirst;
 import weka.core.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -62,11 +64,28 @@ public class Manager{
 			System.out.println(counter);
 		}
 		System.out.println(c);
-		
+		printCluster(bestConfig, nClust);
 		/*ArffSaver saver = new ArffSaver();
 		saver.setInstances(data);
 		saver.setFile(new File("C:/Users/dav_0/Desktop/output.arff"));
 		saver.writeBatch();*/
+	}
+	
+	public static void printCluster(Configuration c, int nClust){
+		for(int i=0; i<nClust; i++){
+			System.out.println("Cluster " + "[" + i + "]");
+			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
+			int count = 0;
+			System.out.print("Elements [ ");
+			for(int l : c.getCentroidAt(i).getAllInstances()){
+				System.out.print(l + " ");
+				count++;
+			}
+			System.out.print("]");
+			System.out.println();
+			System.out.println("Num. of elements " + c.getCentroidAt(i).getNumElements());
+			System.out.println();
+		}
 	}
 	
 	public static void printStatus(ArrayList<Centroid> cluster){
