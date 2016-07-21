@@ -36,7 +36,7 @@ public class Manager{
 		bestConfig = currentConfig.clone();
 		
 		boolean isChanged = true;
-		int c =0;
+		int c = 0;
 		while(isChanged){
 			//tutte le combinazioni possibili
 			ArrayList<Integer> sizes = new ArrayList();
@@ -44,8 +44,6 @@ public class Manager{
 				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
 			}
 			Combinations comb = new Combinations(sizes);
-			if(!bestConfig.isChanged(firstConfig))
-				isChanged = false;
 			c++;
 			int counter =0;
 			while(true){
@@ -62,6 +60,10 @@ public class Manager{
 			}
 			bestConfig.printStatus();
 			System.out.println(counter);
+//			if(bestConfig.isChanged(firstConfig))
+//				isChanged = false;
+			isChanged = bestConfig.isChanged(firstConfig);
+			firstConfig = bestConfig.clone();
 		}
 		System.out.println(c);
 		printCluster(bestConfig, nClust);

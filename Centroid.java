@@ -9,7 +9,7 @@ public class Centroid extends Instance{
 	private double totalCost;
 	private ArrayList<Integer> instanceList = new ArrayList<Integer>();
 	private int clusterID;
-	private int count = 0;
+	private int numOfElments = 0;
 	
 	public Centroid(int id){
 		super(id);
@@ -60,10 +60,10 @@ public class Centroid extends Instance{
 	
 	public void addInstance(int id){
 		this.instanceList.add(id);
-		this.count++;
+		this.numOfElments++;
 	}
 	
 	public int getNumElements(){
-		return this.count + 1;
+		return this.numOfElments + 1;
 	}
 }
