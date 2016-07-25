@@ -4,8 +4,7 @@ import java.util.*;
 
 import weka.attributeSelection.BestFirst;
 import weka.core.*;
-import java.io.BufferedReader;
-import java.io.FileReader;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Random;
@@ -24,7 +23,7 @@ public class Manager{
 		int nClust = Integer.parseInt(args[0]);
 		String filePath = args[1];
 		int seed = Integer.parseInt(args[2]);
-		//String distanceFunction = args[3];
+		String distanceFunction = args[3];
 		
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
@@ -34,6 +33,9 @@ public class Manager{
 		firstConfig = currentConfig.clone();
 		firstConfig.printStatus();		
 		bestConfig = currentConfig.clone();
+		
+		//variabile start per il calcolo del tempo di esecuzione
+		double startTime = System.nanoTime();
 		
 		boolean isChanged = true;
 		int c = 0;
@@ -48,18 +50,19 @@ public class Manager{
 			int counter =0;
 			while(true){
 				int[] currentCombination = comb.getCombination();
+				
+				//se sono terminate le combinazioni
 				if(currentCombination == null)
 					break;
+				
 				counter++;
 				currentConfig = new Configuration(data, nClust, currentCombination);
 				if(currentConfig.isBetterThan(bestConfig)){
 //					System.out.println("Found better status");
 					bestConfig = currentConfig.clone();
 				}
-	//			currentConfig.printStatus();
 			}
 			bestConfig.printStatus();
-			System.out.println(counter);
 //			if(bestConfig.isChanged(firstConfig))
 //				isChanged = false;
 			isChanged = bestConfig.isChanged(firstConfig);
@@ -67,6 +70,13 @@ public class Manager{
 		}
 		System.out.println(c);
 		printCluster(bestConfig, nClust);
+		
+		//variabile fine calcolo del tempo di esecuzione
+		double endTime = System.nanoTime();
+		double time = (endTime - startTime)/1000000000;
+		System.out.println("Execution time: " + time + " s");
+		bestConfig.outputOnFile(data, time, seed, distanceFunction);
+		
 		/*ArffSaver saver = new ArffSaver();
 		saver.setInstances(data);
 		saver.setFile(new File("C:/Users/dav_0/Desktop/output.arff"));
