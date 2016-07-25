@@ -13,21 +13,44 @@ import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
 import weka.core.converters.ArffSaver;
 
-public class Manager{	
+public class Manager {	
+	private static Configuration bestConfig = null;
+	private static Thread[] threads;
+	private static Combinations comb;
+	private static final int MAX_THREADS = 10;
+	private static Instances data;
+	private static RunnableCatcher catcher;
 	
 	public static void main(String[] args) throws Exception{
 		ArrayList<Instance> instances;
 		Configuration firstConfig;
 		Configuration currentConfig;
-		Configuration bestConfig = null;
+		//Configuration bestConfig = null;
 		int nClust = Integer.parseInt(args[0]);
 		String filePath = args[1];
 		int seed = Integer.parseInt(args[2]);
 		String distanceFunction = args[3];
+		threads = new Thread[MAX_THREADS];
+		
+		catcher = new RunnableCatcher() {
+			
+			@Override
+			public void signalResult(Configuration config, int id) {
+				if(config.isBetterThan(bestConfig)){
+//					System.out.println("Found better status");
+					bestConfig = config.clone();
+				}
+				int[] currentComb = comb.getCombination();
+				if(currentComb != null){
+					threads[id] = new Thread(new Task(data, nClust, currentComb, catcher, id));
+					threads[id].start();
+				}
+			}
+		};
 		
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
-		Instances data = arff.getData();	
+		data = arff.getData();	
 		
 		currentConfig = new Configuration(data, nClust, seed);
 		firstConfig = currentConfig.clone();
@@ -39,29 +62,35 @@ public class Manager{
 		
 		boolean isChanged = true;
 		int c = 0;
+			
 		while(isChanged){
 			//tutte le combinazioni possibili
 			ArrayList<Integer> sizes = new ArrayList();
 			for (int i=0; i<nClust; i++) {
 				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
 			}
-			Combinations comb = new Combinations(sizes);
+			comb = new Combinations(sizes);
 			c++;
 			int counter =0;
-			while(true){
+//			while(true){
+			for(int i=0; i<MAX_THREADS; i++){
 				int[] currentCombination = comb.getCombination();
-				
-				//se sono terminate le combinazioni
-				if(currentCombination == null)
-					break;
-				
-				counter++;
-				currentConfig = new Configuration(data, nClust, currentCombination);
-				if(currentConfig.isBetterThan(bestConfig)){
-//					System.out.println("Found better status");
-					bestConfig = currentConfig.clone();
-				}
+				threads[i] = new Thread(new Task(data, nClust, comb.getCombination(), catcher, i));
+				threads[i].start();
 			}
+				//se sono terminate le combinazioni
+//				if(currentCombination == null)
+//					break;
+//				
+//				counter++;
+				//commento per parallelizzare
+				//currentConfig = new Configuration(data, nClust, currentCombination);
+//				if(currentConfig.isBetterThan(bestConfig)){
+//					System.out.println("Found better status");
+//					bestConfig = currentConfig.clone();
+				
+//				}
+//			}
 			bestConfig.printStatus();
 //			if(bestConfig.isChanged(firstConfig))
 //				isChanged = false;
@@ -105,6 +134,5 @@ public class Manager{
 		for(int i=0; i<cluster.size(); i++){
 			System.out.print(cluster.get(i).getID() + " ");
 		}
-	}
-	
+	}	
 }
