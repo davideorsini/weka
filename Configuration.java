@@ -149,33 +149,31 @@ public class Configuration{
 		return true;		
 	}
 	
-	public boolean isChanged(Configuration c){
-		//controllo che non ci siano stati scambi tra i cluster
-		boolean flag = true;
-		for(int i=0; i<clusterStatus.size(); i++){
-			if(!clusterStatus.get(i).equals(c.getCentroidAt(i))){
-				flag = false;
-				break;
-			}
-		}
-		return flag;
-	}
-	
 //	public boolean isChanged(Configuration c){
 //		//controllo che non ci siano stati scambi tra i cluster
-//		System.out.println("isChanged?");
 //		boolean flag = true;
 //		for(int i=0; i<clusterStatus.size(); i++){
-//			for(int j=0; j<clusterStatus.get(i).getNumElements(); j++){
-//				if(clusterStatus.get(i).getAllInstances().get(j) != c.getCentroidAt(i).getAllInstances().get(j)){
-//					System.out.println("exit");
-//					flag = false;
-//					return flag;
-//				}
+//			if(!clusterStatus.get(i).equals(c.getCentroidAt(i))){
+//				flag = false;
+//				break;
 //			}
 //		}
 //		return flag;
 //	}
+	
+	public boolean isChanged(Configuration c){
+		//controllo che non ci siano stati scambi tra i cluster
+		boolean flag = true;
+		for(int i=0; i<clusterStatus.size(); i++){
+			for(int j=0; j<clusterStatus.get(i).getNumElements(); j++){
+				if(clusterStatus.get(i).getAllInstances().get(j) != c.getCentroidAt(i).getAllInstances().get(j)){
+					flag = false;
+					return flag;
+				}
+			}
+		}
+		return flag;
+	}
 	
 	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, int seed, Instances data){
 		Random randInstanceIndex = new Random(seed);
