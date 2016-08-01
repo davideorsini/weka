@@ -66,4 +66,8 @@ public class Combinations{
 		decreaseUnit(currentCombination.length-1);
 		return toRet;
 	}
+	
+	public boolean isDepleted(){
+		return this.flagEnded;
+	}
 }
