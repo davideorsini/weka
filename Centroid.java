@@ -37,6 +37,11 @@ public class Centroid extends Instance{
 	
 	public synchronized ArrayList<Integer> getAllInstances(){
 		ArrayList<Integer> toRet = instanceList;
+		for(Integer i : instanceList){
+			if(i != getID()){
+				return toRet;
+			}
+		}
 		toRet.add(getID());
 		Collections.sort(toRet);
 		return toRet;

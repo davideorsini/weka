@@ -8,12 +8,6 @@ public class Combinations{
 	private int[] firstCombination;
 	private boolean flagEnded = false;
 	
-	/*public Combinations(int... ints){
-		clustersSize = ints.clone();
-		currentCombination = ints;
-		printArray(clustersSize);
-	}*/
-	
 	public Combinations(ArrayList<Integer> list, int[] firstCombination) {
 		this.firstCombination = firstCombination;
 		clustersSize = new int[list.size()];
