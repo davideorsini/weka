@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Combinations{
 	private int[] clustersSize; 
 	private int[] currentCombination;
+	private int[] firstCombination;
 	private boolean flagEnded = false;
 	
 	/*public Combinations(int... ints){
@@ -13,7 +14,8 @@ public class Combinations{
 		printArray(clustersSize);
 	}*/
 	
-	public Combinations(ArrayList<Integer> list) {
+	public Combinations(ArrayList<Integer> list, int[] firstCombination) {
+		this.firstCombination = firstCombination;
 		clustersSize = new int[list.size()];
 		currentCombination = new int[list.size()];
 		for (int i=0; i<list.size(); i++) {
@@ -54,6 +56,10 @@ public class Combinations{
 	public int[] getCombination(){
 		if(flagEnded){
 			return null;
+		}
+		//salto la prima configurazione quando capita
+		if(currentCombination == firstCombination){
+			decreaseUnit(currentCombination.length-1);
 		}
 		
 		int[] toRet = currentCombination;

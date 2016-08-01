@@ -34,17 +34,18 @@ public class Manager {
 		
 		catcher = new RunnableCatcher() {
 			@Override
-			public void signalResult(Configuration config, int id) {
+			public synchronized void signalResult(Configuration config, int id) {
+//				System.out.println("signalResults");
 				//controlla se il costo e' inferiore
 				if(config.isBetterThan(bestConfig)){
 //					System.out.println("Found better status");
 					bestConfig = config.clone();
 				}
-				isChanged = config.isChanged(firstConfig);	
+				isChanged = bestConfig.isChanged(firstConfig);	
 				
 				//se c'e' altro lavoro da fare...
 				int[] currentComb = comb.getCombination();
-				if(currentComb != null && isChanged){
+				if(currentComb != null){
 					threads[id] = new Thread(new Task(data, nClust, currentComb, catcher, id));
 					threads[id].start();
 				}
@@ -62,66 +63,41 @@ public class Manager {
 		
 		//variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
-		isChanged = true;
-//		while(isChanged){
-			ArrayList<Integer> sizes = new ArrayList();
-			for (int i=0; i<nClust; i++) {
-				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
-			}
-			comb = new Combinations(sizes);
-			for(int i=0; i<MAX_THREADS; i++){
-				int[] currentCombination = comb.getCombination();
-				threads[i] = new Thread(new Task(data, nClust, currentCombination, catcher, i));
-				threads[i].start();
-			}
-//			isChanged = bestConfig.isChanged(firstConfig);
-//			firstConfig = bestConfig.clone();
-//		}
 		
-		/*isChanged = true;
-		int c = 0;	
-		while(isChanged){
-			//tutte le combinazioni possibili
-			ArrayList<Integer> sizes = new ArrayList();
-			for (int i=0; i<nClust; i++) {
-				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
-			}
-			comb = new Combinations(sizes);
-			c++;
-			int counter =0;
-//			while(true){
-			for(int i=0; i<MAX_THREADS; i++){
-				int[] currentCombination = comb.getCombination();
-				threads[i] = new Thread(new Task(data, nClust, currentCombination, catcher, i));
-				//threads[i].start();
-			}
-				//se sono terminate le combinazioni
-//				if(currentCombination == null)
-//					break;
-//				
-//				counter++;
-				//commento per parallelizzare
-				//currentConfig = new Configuration(data, nClust, currentCombination);
-//				if(currentConfig.isBetterThan(bestConfig)){
-//					System.out.println("Found better status");
-//					bestConfig = currentConfig.clone();
-				
-//				}
-//			}
-			bestConfig.printStatus();
-//			if(bestConfig.isChanged(firstConfig))
-//				isChanged = false;
-//			isChanged = bestConfig.isChanged(firstConfig);
-//			firstConfig = bestConfig.clone();
-		}*/
-		//System.out.println(c);
-		printCluster(firstConfig, nClust);
-		printCluster(bestConfig, nClust);
+		ArrayList<Integer> sizes = new ArrayList();
+		for (int i=0; i<nClust; i++) {
+			sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
+		}
+		int[] firstCombination = new int[nClust];
+		for(int i=0; i<nClust; i++){
+			firstCombination[i] = firstConfig.getCentroidAt(i).getID();
+		}
+		comb = new Combinations(sizes, firstCombination);
+		for(int i=0; i<MAX_THREADS; i++){
+			int[] currentCombination = comb.getCombination();
+			threads[i] = new Thread(new Task(data, nClust, currentCombination, catcher, i));
+			threads[i].start();
+			try {
+		         threads[i].join();
+		    }
+			catch(Exception e){ 
+		         System.out.println(e.toString());
+		    }
+		}
+		
+//		try {
+//			printCluster(firstConfig, nClust);
+//			printCluster(bestConfig, nClust);
+//		}
+//		catch(Exception e){
+//			System.out.println(e);
+//		}
 		
 		//variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime)/1000000000;
 		System.out.println("Execution time: " + time + " s");
+		firstConfig.outputOnFile(data, time, seed, distanceFunction);
 		bestConfig.outputOnFile(data, time, seed, distanceFunction);
 		
 		/*ArffSaver saver = new ArffSaver();
@@ -136,10 +112,10 @@ public class Manager {
 			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
 			int count = 0;
 			System.out.print("Elements [ ");
-//			for(int l : c.getCentroidAt(i).getAllInstances()){
-//				System.out.print(l + " ");
-//				count++;
-//			}
+			for(int l : c.getCentroidAt(i).getAllInstances()){
+				System.out.print(l + " ");
+				count++;
+			}
 			System.out.print("]");
 			System.out.println();
 			System.out.println("Num. of elements " + c.getCentroidAt(i).getNumElements());

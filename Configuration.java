@@ -38,10 +38,14 @@ public class Configuration{
 				while(i == getCentroidAt(k).getID()){
 					i++;
 				}
-				costs[j] = getCentroidAt(k).euclideanDistance(i, data);
-				//System.out.println(costs[j] + " ");
-				j++;
+				if(i<data.numInstances()){
+					costs[j] = getCentroidAt(k).euclideanDistance(i, data);
+					//System.out.println(costs[j] + " ");
+					j++;
+				}
 			}
+			
+			//assegno l'istanza al cluster piu' vicino
 			int index = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<nClust; jj++){
