@@ -188,7 +188,7 @@ public class Configuration{
 			int j=0;
 			centroidIndex = randInstanceIndex.nextInt(data.numInstances());
 			while(j<centroidList.size()){
-				if(centroidIndex != ((ArrayList<Centroid>) centroidList).get(j).getID()){
+				if(centroidIndex != centroidList.get(j).getID()){
 					j++;
 				}
 				else{

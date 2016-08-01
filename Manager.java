@@ -48,6 +48,12 @@ public class Manager {
 				if(currentComb != null){
 					threads[id] = new Thread(new Task(data, nClust, currentComb, catcher, id));
 					threads[id].start();
+					try {
+						threads[id].join();
+					}
+					catch(Exception e) {
+						System.out.println(e);
+					}
 				}
 			}
 		};
@@ -64,7 +70,7 @@ public class Manager {
 		//variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
 		
-		ArrayList<Integer> sizes = new ArrayList();
+		ArrayList<Integer> sizes = new ArrayList<Integer>();
 		for (int i=0; i<nClust; i++) {
 			sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
 		}
@@ -85,19 +91,19 @@ public class Manager {
 		    }
 		}
 		
-//		try {
-//			printCluster(firstConfig, nClust);
-//			printCluster(bestConfig, nClust);
-//		}
-//		catch(Exception e){
-//			System.out.println(e);
-//		}
+		try {
+			printCluster(firstConfig, nClust);
+			printCluster(bestConfig, nClust);
+		}
+		catch(Exception e){
+			System.out.println(e);
+		}
 		
 		//variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime)/1000000000;
 		System.out.println("Execution time: " + time + " s");
-		firstConfig.outputOnFile(data, time, seed, distanceFunction);
+//		firstConfig.outputOnFile(data, time, seed, distanceFunction);
 		bestConfig.outputOnFile(data, time, seed, distanceFunction);
 		
 		/*ArffSaver saver = new ArffSaver();
@@ -110,12 +116,10 @@ public class Manager {
 		for(int i=0; i<nClust; i++){
 			System.out.println("Cluster " + "[" + i + "]");
 			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
-			int count = 0;
 			System.out.print("Elements [ ");
-			for(int l : c.getCentroidAt(i).getAllInstances()){
-				System.out.print(l + " ");
-				count++;
-			}
+//			for(int l : c.getCentroidAt(i).getAllInstances()){
+//				System.out.print(l + " ");
+//			}
 			System.out.print("]");
 			System.out.println();
 			System.out.println("Num. of elements " + c.getCentroidAt(i).getNumElements());
