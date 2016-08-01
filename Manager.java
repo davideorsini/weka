@@ -58,23 +58,29 @@ public class Manager{
 		
 		comb = new Combinations(sizes, firstCombination);
 		configs = new Configuration[MAX_THREADS];
-		for(int i=0; i<MAX_THREADS; i++){
-			int[] currentCombination = comb.getCombination();
-			threads[i] = new Thread(new Task(data, nClust, currentCombination, i, configs));
-			threads[i].start();
-		}
+//		for(int i=0; i<MAX_THREADS; i++){
+//			int[] currentCombination = comb.getCombination();
+//			threads[i] = new Thread(new Task(data, nClust, currentCombination, i, configs));
+//			threads[i].start();
+//		}
 		
 		int j = 0;
 		while(!comb.isDepleted()){
 			try {
-		         threads[j].join();
-		         if(configs[j].isBetterThan(bestConfig)){
-		        	 bestConfig = bestConfig.clone();
-		         }
-		         if(!comb.isDepleted()){
+				if(!comb.isDepleted()){
 		        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
 		        	 threads[j].start();
 		         }
+		         threads[j].join();
+//		         comb.printComb();
+//		         configs[j].printStatus();
+		         if(configs[j].isBetterThan(bestConfig)){
+		        	 bestConfig = configs[j].clone();
+		         }
+//		         if(!comb.isDepleted()){
+//		        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
+//		        	 threads[j].start();
+//		         }
 		    }
 			catch(Exception e){ 
 		         System.out.println(e.toString());

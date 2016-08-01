@@ -70,4 +70,12 @@ public class Combinations{
 	public boolean isDepleted(){
 		return this.flagEnded;
 	}
+	
+	public void printComb(){
+		System.err.println("Combination {");
+		for(int i=0; i<currentCombination.length; i++){
+			System.err.print(currentCombination[i] + "  ");
+		}
+		System.err.print("}");
+	}
 }
