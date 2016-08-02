@@ -94,10 +94,6 @@ public class Manager{
 			         if(configs[j].isBetterThan(bestConfig) == true){
 			        	 bestConfig = configs[j].clone();
 			         }
-//			         if(!comb.isDepleted()){
-//			        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
-//			        	 threads[j].start();
-//			         }
 			    }
 				catch(Exception e){ 
 			         System.out.println(e.toString());
@@ -130,11 +126,6 @@ public class Manager{
 		System.out.println("Execution time: " + time + " s");
 //		firstConfig.outputOnFile(data, time, seed, distanceFunction);
 		bestConfig.outputOnFile(data, time, seed, distanceFunction);
-		
-		/*ArffSaver saver = new ArffSaver();
-		saver.setInstances(data);
-		saver.setFile(new File("C:/Users/dav_0/Desktop/output.arff"));
-		saver.writeBatch();*/
 	}
 	
 	public synchronized static void printCluster(Configuration c, int nClust){
