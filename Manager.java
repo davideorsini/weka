@@ -67,15 +67,20 @@ public class Manager{
 		while(flag){
 			ArrayList<Integer> sizes = new ArrayList<Integer>();
 			for (int i=0; i<nClust; i++) {
-				sizes.add(currentConfig.getCentroidAt(i).getInstanceList().size());
+				sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
 			}
 			int[] firstCombination = new int[nClust];
 			for(int i=0; i<nClust; i++){
 				firstCombination[i] = firstConfig.getCentroidAt(i).getID();
 			}
-			firstConfig.printStatus();
+//			firstConfig.printStatus();
 			comb = new Combinations(sizes, firstCombination);
 			configs = new Configuration[MAX_THREADS];
+			for(int i=0; i<MAX_THREADS; i++){
+				int[] currentCombination = comb.getCombination();
+				threads[i] = new Thread(new Task(data, nClust, currentCombination, i, configs));
+				threads[i].start();
+			}
 			int j = 0;
 			while(!comb.isDepleted()){
 				try {
@@ -86,13 +91,13 @@ public class Manager{
 			         threads[j].join();
 //			         comb.printComb();
 	//		         configs[j].printStatus();
-			         if(configs[j].isBetterThan(bestConfig)){
+			         if(configs[j].isBetterThan(bestConfig) == true){
 			        	 bestConfig = configs[j].clone();
 			         }
-	//		         if(!comb.isDepleted()){
-	//		        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
-	//		        	 threads[j].start();
-	//		         }
+//			         if(!comb.isDepleted()){
+//			        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
+//			        	 threads[j].start();
+//			         }
 			    }
 				catch(Exception e){ 
 			         System.out.println(e.toString());
@@ -100,30 +105,24 @@ public class Manager{
 				
 				//se é terminato l'ultimo thread ma c'é ancora del lavoro da fare
 				//rilancio i thread
-				if(j == MAX_THREADS-1 || !comb.isDepleted()){
+				if(j == MAX_THREADS-1 && !comb.isDepleted()){
 		        	j = 0; 
 		        }
 				j++;
 			}
-			count++;
 			printCluster(firstConfig, nClust);
 			printCluster(bestConfig, nClust);
-			if(bestConfig.isChanged(firstConfig) != false){
-				flag = false;
-			}
+			flag = !bestConfig.isChanged(firstConfig);
+			System.out.println(flag);
 			firstConfig = bestConfig.clone();
+			count++;
 		}
 		
 		
 		System.out.println("threads terminated " + count);
 		
-//		try {
-//			printCluster(firstConfig, nClust);
-//			printCluster(bestConfig, nClust);
-//		}
-//		catch(Exception e){
-//			System.out.println(e);
-//		}
+//		printCluster(firstConfig, nClust);
+		printCluster(bestConfig, nClust);
 		
 		//variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
