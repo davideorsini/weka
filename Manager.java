@@ -18,7 +18,7 @@ public class Manager{
 	private Configuration firstConfig;
 	private Thread[] threads;
 	private Combinations comb;
-	private final int MAX_THREADS = 10;
+	private final int MAX_THREADS = 4;
 	private Instances data;
 	private boolean isChanged;
 	private int nClust;
@@ -81,6 +81,9 @@ public class Manager{
 				threads[i] = new Thread(new Task(data, nClust, currentCombination, i, configs));
 				threads[i].start();
 			}
+			for(int i=0; i<MAX_THREADS; i++){
+				threads[i].join();
+			}
 			int j = 0;
 			while(!comb.isDepleted()){
 				try {
@@ -88,7 +91,7 @@ public class Manager{
 			        	 threads[j] = new Thread(new Task(data, nClust, comb.getCombination(), j, configs));
 			        	 threads[j].start();
 			         }
-			         threads[j].join();
+//			         threads[j].join();
 //			         comb.printComb();
 	//		         configs[j].printStatus();
 			         if(configs[j].isBetterThan(bestConfig) == true){
@@ -102,8 +105,16 @@ public class Manager{
 				//se é terminato l'ultimo thread ma c'é ancora del lavoro da fare
 				//rilancio i thread
 				if(j == MAX_THREADS-1 && !comb.isDepleted()){
-		        	j = 0; 
+		        	j = 0;
+		        	for(int i=0; i<MAX_THREADS; i++){
+						threads[i].join();
+					}
 		        }
+				if(comb.isDepleted()){
+					for(int i=0; i<MAX_THREADS; i++){
+						threads[i].join();
+					}
+				}
 				j++;
 			}
 			printCluster(firstConfig, nClust);

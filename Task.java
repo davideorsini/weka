@@ -18,8 +18,8 @@ public class Task implements Runnable{
 	}
 	
 	public void run(){
-//		System.out.println("started thread " + id);
+//		System.out.println("started thread " + id + " at " + (double)System.nanoTime()/1000000000);
 		configs[id] = new Configuration(data, nClust, comb);
-//		System.out.println("finished thread " + id);
+//		System.out.println("finished thread " + id + " at " + (double)System.nanoTime()/1000000000);
 	}
 }
