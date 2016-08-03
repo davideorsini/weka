@@ -69,6 +69,9 @@ public class Manager{
 			for (int i=0; i<nClust; i++) {
 				sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
 			}
+//			sizes.add(2);
+//			sizes.add(5);
+//			sizes.add(3);
 			int[] firstCombination = new int[nClust];
 			for(int i=0; i<nClust; i++){
 				firstCombination[i] = firstConfig.getCentroidAt(i).getID();
@@ -76,9 +79,11 @@ public class Manager{
 //			firstConfig.printStatus();
 			comb = new Combinations(sizes, firstCombination);
 			configs = new Configuration[MAX_THREADS];
+			final long configToTest = comb.getMaxComb();
+			int qty = (int)configToTest / MAX_THREADS;
 			for(int i=0; i<MAX_THREADS; i++){
-				int[] currentCombination = comb.getCombination();
-				threads[i] = new Thread(new Task(data, nClust, currentCombination, i, configs));
+//				int[] currentCombination = comb.getCombination();
+				threads[i] = new Thread(new Task(data, nClust, comb.getCombination(), i, configs));
 				threads[i].start();
 			}
 			for(int i=0; i<MAX_THREADS; i++){

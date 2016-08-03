@@ -7,6 +7,8 @@ public class Combinations{
 	private int[] currentCombination;
 	private int[] firstCombination;
 	private boolean flagEnded = false;
+	private int[] bases;
+	private long maxComb;
 	
 	public Combinations(ArrayList<Integer> list, int[] firstCombination) {
 		this.firstCombination = firstCombination;
@@ -16,9 +18,21 @@ public class Combinations{
 			clustersSize[i] = list.get(i);
 			currentCombination[i] = list.get(i);
 		}
+		bases = new int[clustersSize.length];
+		int acc = 1;
+		for(int i=clustersSize.length-1; i>=0; i--){
+			bases[i] = acc;
+			acc = acc * (firstCombination[i] + 1);
+		}
+		maxComb = acc;
+		
 		printArray(clustersSize);
 	}
 	
+	public Combinations(ArrayList<Integer> list, int[] firstCombination, int[] offsetComb) {
+		this(list, firstCombination);
+		this.currentCombination = offsetComb;
+	}
 	public static void printArray(int[] array) {
 		if (array == null)
 			return;
@@ -47,6 +61,44 @@ public class Combinations{
 		}
 	}
 	
+	//prende la comb corrente e salta le pross combQty combinazioni
+	public int[] getCombination(int combQty) throws IllegalArgumentException{
+		if(comb2Int(currentCombination) > combQty){
+			throw new IllegalArgumentException();
+		}
+		if(flagEnded){
+			return null;
+		}
+		//salto la prima configurazione quando capita
+		if(currentCombination == firstCombination){
+			decreaseUnit(currentCombination.length-1);
+		}
+		
+		int[] toRet = new int[clustersSize.length];
+		toRet = currentCombination;
+		long intVal = comb2Int(currentCombination);
+		intVal = intVal - (combQty -1);
+		currentCombination = int2Comb(intVal);
+		return toRet;
+	}	
+	
+	private long comb2Int(int[] comb){
+		long counter = 0;
+		for(int i=0; i<comb.length; i++){
+			counter += bases[i] * comb[i];
+		}
+		return counter;
+	}
+	
+	private int[] int2Comb(long counter){
+		int[] comb = new int[clustersSize.length];
+		for(int i=0; i< clustersSize.length; i++){
+			comb[i] = ((int)counter) / bases[i];
+			counter = counter % bases[i];
+		}
+		return comb;
+	}
+	
 	public int[] getCombination(){
 		if(flagEnded){
 			return null;
@@ -56,13 +108,22 @@ public class Combinations{
 			decreaseUnit(currentCombination.length-1);
 		}
 		
-		int[] toRet = currentCombination;
+		int[] toRet = new int[clustersSize.length];
+		toRet = currentCombination;
 		decreaseUnit(currentCombination.length-1);
 		return toRet;
 	}
 	
 	public boolean isDepleted(){
 		return this.flagEnded;
+	}
+	
+	public long getMaxComb(){
+		return maxComb;
+	}
+	
+	public int[] getBases(){
+		return bases;
 	}
 	
 	public void printComb(){
