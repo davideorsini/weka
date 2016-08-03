@@ -48,7 +48,20 @@ public class Centroid extends Instance{
 	}
 	
 	public boolean equals(Centroid c){
-		return getAllInstances().equals(c.getAllInstances());
+//		return getAllInstances().equals(c.getAllInstances());
+		ArrayList<Integer> a = getAllInstances();
+		ArrayList<Integer> b = c.getAllInstances();
+		if(a.size() != b.size()){
+			return false;
+		}
+		else{
+			for(int i=0; i< a.size(); i++){
+				if(a.get(i) != b.get(i)){
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 	
 	public int getClusterID(){

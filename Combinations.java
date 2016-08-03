@@ -8,7 +8,7 @@ public class Combinations{
 	private int[] firstCombination;
 	private boolean flagEnded = false;
 	private int[] bases;
-	private long maxComb;
+	private long maxComb = 0;
 	
 	public Combinations(ArrayList<Integer> list, int[] firstCombination) {
 		this.firstCombination = firstCombination;
@@ -22,17 +22,19 @@ public class Combinations{
 		int acc = 1;
 		for(int i=clustersSize.length-1; i>=0; i--){
 			bases[i] = acc;
-			acc = acc * (firstCombination[i] + 1);
+			acc = acc * (clustersSize[i] + 1);
 		}
 		maxComb = acc;
-		
-		printArray(clustersSize);
+//		printArray(bases);
+//		printArray(clustersSize);
 	}
 	
 	public Combinations(ArrayList<Integer> list, int[] firstCombination, int[] offsetComb) {
 		this(list, firstCombination);
 		this.currentCombination = offsetComb;
+		printArray(offsetComb);
 	}
+	
 	public static void printArray(int[] array) {
 		if (array == null)
 			return;
@@ -63,16 +65,18 @@ public class Combinations{
 	
 	//prende la comb corrente e salta le pross combQty combinazioni
 	public int[] getCombination(int combQty) throws IllegalArgumentException{
-		if(comb2Int(currentCombination) > combQty){
-			throw new IllegalArgumentException();
-		}
+//		System.out.println(combQty);
+//		System.out.println(comb2Int(currentCombination));
+//		if(comb2Int(currentCombination) > combQty){
+//			throw new IllegalArgumentException();
+//		}
 		if(flagEnded){
 			return null;
 		}
 		//salto la prima configurazione quando capita
-		if(currentCombination == firstCombination){
-			decreaseUnit(currentCombination.length-1);
-		}
+//		if(currentCombination == firstCombination){
+//			decreaseUnit(currentCombination.length-1);
+//		}
 		
 		int[] toRet = new int[clustersSize.length];
 		toRet = currentCombination;
