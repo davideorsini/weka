@@ -9,9 +9,9 @@ public class Task implements Runnable{
 	private Combinations comb;
 	private int id;
 	private Configuration[] configs;
-	private int qty;
+	private long qty;
 	
-	public Task(Instances data, int nClust, int qty, ArrayList<Integer> sizes, 
+	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
 			int[] firstComb, int[] offsetComb, int id, 
 			Configuration[] configs){
 		this.data = data;

@@ -7,7 +7,7 @@ public class Combinations{
 	private int[] currentCombination;
 	private int[] firstCombination;
 	private boolean flagEnded = false;
-	private int[] bases;
+	private long[] bases;
 	private long maxComb = 0;
 	
 	public Combinations(ArrayList<Integer> list, int[] firstCombination) {
@@ -18,8 +18,8 @@ public class Combinations{
 			clustersSize[i] = list.get(i);
 			currentCombination[i] = list.get(i);
 		}
-		bases = new int[clustersSize.length];
-		int acc = 1;
+		bases = new long[clustersSize.length];
+		long acc = 1;
 		for(int i=clustersSize.length-1; i>=0; i--){
 			bases[i] = acc;
 			acc = acc * (clustersSize[i] + 1);
@@ -64,12 +64,9 @@ public class Combinations{
 	}
 	
 	//prende la comb corrente e salta le pross combQty combinazioni
-	public int[] getCombination(int combQty) throws IllegalArgumentException{
+	public int[] getCombination(long combQty){
 //		System.out.println(combQty);
 //		System.out.println(comb2Int(currentCombination));
-//		if(comb2Int(currentCombination) > combQty){
-//			throw new IllegalArgumentException();
-//		}
 		if(flagEnded){
 			return null;
 		}
@@ -97,7 +94,7 @@ public class Combinations{
 	private int[] int2Comb(long counter){
 		int[] comb = new int[clustersSize.length];
 		for(int i=0; i< clustersSize.length; i++){
-			comb[i] = ((int)counter) / bases[i];
+			comb[i] = (int)(counter / bases[i]);
 			counter = counter % bases[i];
 		}
 		return comb;
@@ -126,7 +123,7 @@ public class Combinations{
 		return maxComb;
 	}
 	
-	public int[] getBases(){
+	public long[] getBases(){
 		return bases;
 	}
 	

@@ -62,9 +62,9 @@ public class Manager{
 			configs = new Configuration[MAX_THREADS];
 			final long configToTest = comb.getMaxComb();
 			System.out.println("Max comb: " + configToTest);
-			int valQty = (int)configToTest / MAX_THREADS;
+			long valQty = configToTest / MAX_THREADS;
 			System.out.println(valQty + " " + (configToTest - (valQty*MAX_THREADS)));
-			int[] qty = new int[MAX_THREADS];
+			long[] qty = new long[MAX_THREADS];
 			for(int i=0; i<MAX_THREADS; i++){
 				qty[i] = valQty;
 				if(i == (MAX_THREADS - 1)){
