@@ -91,7 +91,7 @@ public class Combinations{
 		return counter;
 	}
 	
-	private int[] int2Comb(long counter){
+	public int[] int2Comb(long counter){
 		int[] comb = new int[clustersSize.length];
 		for(int i=0; i< clustersSize.length; i++){
 			comb[i] = (int)(counter / bases[i]);

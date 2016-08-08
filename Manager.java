@@ -25,6 +25,8 @@ public class Manager{
 	private int seed;
 	private Configuration[] configs;
 	private Configuration currentConfig;
+	private int[] combToThread;
+	private int K;
 	
 	public Manager(String[] args) throws Exception{
 		ArrayList<Instance> instances;
@@ -43,12 +45,17 @@ public class Manager{
 		firstConfig.printStatus();		
 		bestConfig = currentConfig.clone();
 		
+		int count = 0;
+		boolean flag = true;
+		
 		//variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
 		
-		int count = 0;
-		boolean flag = true;
-		while(flag){
+		//In caso in cui K != inf
+		if(!args[4].equalsIgnoreCase("inf")){
+			K = Integer.parseInt(args[4]);
+			combToThread = new int[K];
+			Random rand = new Random(seed);
 			ArrayList<Integer> sizes = new ArrayList<Integer>();
 			for (int i=0; i<nClust; i++) {
 				sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
@@ -59,43 +66,102 @@ public class Manager{
 			}
 			firstConfig.printStatus();
 			comb = new Combinations(sizes, firstCombination);
-			configs = new Configuration[MAX_THREADS];
-			final long configToTest = comb.getMaxComb();
-			System.out.println("Max comb: " + configToTest);
-			long valQty = configToTest / MAX_THREADS;
-			System.out.println(valQty + " " + (configToTest - (valQty*MAX_THREADS)));
-			long[] qty = new long[MAX_THREADS];
-			for(int i=0; i<MAX_THREADS; i++){
-				qty[i] = valQty;
-				if(i == (MAX_THREADS - 1)){
-					qty[i] += configToTest - (valQty * MAX_THREADS);
+			
+			while(flag){
+				configs = new Configuration[MAX_THREADS];
+				final long configToTest = comb.getMaxComb();
+				System.out.println("Max comb: " + configToTest);
+				System.out.println("Combination per thread: " + K/MAX_THREADS + " resto: " + K%MAX_THREADS);
+				for(int i=0; i<K; i++){
+					int j = 0;
+					int val = rand.nextInt((int)configToTest);
+					while(j<nClust){
+						if(val == combToThread[j]){
+							val = rand.nextInt((int)configToTest);
+							j = 0;
+						}
+						j++;
+					}
+					combToThread[i] = val;
 				}
-			}
-			for(int i=0; i<MAX_THREADS; i++){
-//				int[] currentCombination = comb.getCombination();
-				threads[i] = new Thread(new Task(data, nClust, qty[i], sizes, firstCombination, comb.getCombination(qty[i]), i, configs));
-				threads[i].start();
-			}
-			for(int i=0; i<MAX_THREADS; i++){
-				threads[i].join();
-			}
-			double bestTmp = Double.MAX_VALUE;
-			for(int i=0; i<MAX_THREADS; i++){
-				if(configs[i].isBetterThan(bestConfig)){
-					bestConfig = configs[i].clone();
+
+				for(int i=0; i<MAX_THREADS; i++){
+	//				int[] currentCombination = comb.getCombination();
+					if(i == MAX_THREADS-1){
+						threads[i] = new Thread(new Task1(data, nClust, combToThread, i, seed, 
+								configs, comb, i*MAX_THREADS, (K/MAX_THREADS)+(K%MAX_THREADS)));
+					}
+					else{
+						threads[i] = new Thread(new Task1(data, nClust, combToThread, i, seed, 
+								configs, comb, i*MAX_THREADS, (K/MAX_THREADS)));
+					}
+					threads[i].start();
 				}
+				for(int i=0; i<MAX_THREADS; i++){
+					threads[i].join();
+				}
+				for(int i=0; i<MAX_THREADS; i++){
+					if(configs[i].isBetterThan(bestConfig)){
+						bestConfig = configs[i].clone();
+					}
+				}
+				bestConfig.printStatus();
+				firstConfig.printStatus();
+	//			printCluster(firstConfig, nClust);
+	//			printCluster(bestConfig, nClust);
+				flag = bestConfig.isChanged(firstConfig);
+				System.out.println(flag);
+				firstConfig = bestConfig.clone();
+				count++;
 			}
-			bestConfig.printStatus();
-			firstConfig.printStatus();
-//			printCluster(firstConfig, nClust);
-//			printCluster(bestConfig, nClust);
-			flag = bestConfig.isChanged(firstConfig);
-			System.out.println(flag);
-			firstConfig = bestConfig.clone();
-			count++;
 		}
-		
-		
+		else{
+			while(flag){
+				ArrayList<Integer> sizes = new ArrayList<Integer>();
+				for (int i=0; i<nClust; i++) {
+					sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
+				}
+				int[] firstCombination = new int[nClust];
+				for(int i=0; i<nClust; i++){
+					firstCombination[i] = firstConfig.getCentroidAt(i).getID();
+				}
+				firstConfig.printStatus();
+				comb = new Combinations(sizes, firstCombination);
+				configs = new Configuration[MAX_THREADS];
+				final long configToTest = comb.getMaxComb();
+				System.out.println("Max comb: " + configToTest);
+				long valQty = configToTest / MAX_THREADS;
+				System.out.println(valQty + " " + (configToTest - (valQty*MAX_THREADS)));
+				long[] qty = new long[MAX_THREADS];
+				for(int i=0; i<MAX_THREADS; i++){
+					qty[i] = valQty;
+					if(i == (MAX_THREADS - 1)){
+						qty[i] += configToTest - (valQty * MAX_THREADS);
+					}
+				}
+				for(int i=0; i<MAX_THREADS; i++){
+					threads[i] = new Thread(new Task(data, nClust, qty[i], sizes, firstCombination, comb.getCombination(qty[i]), i, configs));
+					threads[i].start();
+				}
+				for(int i=0; i<MAX_THREADS; i++){
+					threads[i].join();
+				}
+				for(int i=0; i<MAX_THREADS; i++){
+					if(configs[i].isBetterThan(bestConfig)){
+						bestConfig = configs[i].clone();
+					}
+				}
+				bestConfig.printStatus();
+				firstConfig.printStatus();
+	//			printCluster(firstConfig, nClust);
+	//			printCluster(bestConfig, nClust);
+				flag = bestConfig.isChanged(firstConfig);
+				System.out.println(flag);
+				firstConfig = bestConfig.clone();
+				count++;
+			}
+			
+		}
 		System.out.println("threads terminated " + count);
 		
 //		printCluster(firstConfig, nClust);
