@@ -153,13 +153,24 @@ public class Configuration{
 		return true;		
 	}
 	
+//	public boolean isChanged(Configuration c){
+//		//controllo che non ci siano stati scambi tra i cluster
+//		boolean flag = false;
+//		for(int i=0; i<clusterStatus.size(); i++){
+//			if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
+//				flag = true;
+//				break;
+//			}
+//		}
+//		return flag;
+//	}
+	
 	public boolean isChanged(Configuration c){
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
 		for(int i=0; i<clusterStatus.size(); i++){
-			if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
+			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
 				flag = true;
-				break;
 			}
 		}
 		return flag;
