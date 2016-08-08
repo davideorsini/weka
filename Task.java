@@ -29,7 +29,7 @@ public class Task implements Runnable{
 		for(int i=0; i<qty; i++){
 //			int[] combi = comb.getCombination();
 //			System.err.print("{ ");
-//			for(int j=0; j<3; j++){
+//			for(int j=0; j<nClust; j++){
 //				System.err.print(combi[j] + " ");
 //			}
 //			System.err.println("}" + " " + "id: " + id);

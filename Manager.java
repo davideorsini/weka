@@ -42,7 +42,7 @@ public class Manager{
 		firstConfig = currentConfig.clone();
 		firstConfig.printStatus();		
 		bestConfig = currentConfig.clone();
-		
+		printCluster(firstConfig, nClust);
 		//variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
 		
@@ -57,7 +57,7 @@ public class Manager{
 			for(int i=0; i<nClust; i++){
 				firstCombination[i] = firstConfig.getCentroidAt(i).getID();
 			}
-//			firstConfig.printStatus();
+			firstConfig.printStatus();
 			comb = new Combinations(sizes, firstCombination);
 			configs = new Configuration[MAX_THREADS];
 			final long configToTest = comb.getMaxComb();
@@ -72,7 +72,6 @@ public class Manager{
 				}
 			}
 			for(int i=0; i<MAX_THREADS; i++){
-//				int[] currentCombination = comb.getCombination();
 				threads[i] = new Thread(new Task(data, nClust, qty[i], sizes, firstCombination, comb.getCombination(qty[i]), i, configs));
 				threads[i].start();
 			}
@@ -85,8 +84,8 @@ public class Manager{
 					bestConfig = configs[i].clone();
 				}
 			}
-//			bestConfig.printStatus();
-//			firstConfig.printStatus();
+			bestConfig.printStatus();
+			firstConfig.printStatus();
 //			printCluster(firstConfig, nClust);
 //			printCluster(bestConfig, nClust);
 			flag = firstConfig.isChanged(bestConfig);

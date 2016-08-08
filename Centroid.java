@@ -20,7 +20,7 @@ public class Centroid extends Instance{
 		for(int i=0; i<data.instance(instanceID).numAttributes(); i++){
 			cost += Math.pow(data.instance(instanceID).value(i) - data.instance(this.id).value(i),2);
 		}
-		return cost;
+		return Math.sqrt(cost);
 	}
 	
 	/*public double otherDistance(int instanceID){

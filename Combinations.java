@@ -32,7 +32,7 @@ public class Combinations{
 	public Combinations(ArrayList<Integer> list, int[] firstCombination, int[] offsetComb) {
 		this(list, firstCombination);
 		this.currentCombination = offsetComb;
-//		printArray(offsetComb);
+		printArray(offsetComb);
 	}
 	
 	public static void printArray(int[] array) {
