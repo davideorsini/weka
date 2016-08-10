@@ -8,25 +8,27 @@ public class Task1 implements Runnable{
 	private int nClust;
 	private int id;
 	private Configuration[] configs;
-	private ArrayList<ArrayList<Long>> randCombs_id;
+	private int[][] randCombs_id;
+	private int qty;
 	
 	public Task1(Instances data, int nClust, int id,
-			ArrayList<ArrayList<Long>> randCombs_id,
-					Configuration[] configs){
+			int[][] randCombs_id, int qty,
+			Configuration[] configs){
 		this.data = data;
 		this.nClust = nClust;
 		this.id = id;
 		this.configs = configs;
 		this.randCombs_id = randCombs_id;
+		this.qty = qty;
 	}
 	
 	public void run(){
 		Configuration best = null;
 //		System.out.println("started thread " + id + " at " + (double)System.nanoTime()/1000000000);
-		for(int i=offset; i<offset+stride; i++){
+		for(int i=0; i<qty; i++){
 //			System.out.println(offset + " - " + stride);
 //			System.err.println("}" + " " + "id: " + id);
-			configs[id] = new Configuration(data, nClust, firstComb.int2Comb(combToThread[i]));
+			configs[id] = new Configuration(data, nClust, randCombs_id[i]);
 			//controllo la best per il costo
 			if(best == null){
 				best = configs[id];

@@ -26,6 +26,7 @@ public class Manager{
 	private Configuration[] configs;
 	private Configuration currentConfig;
 	private static int K;
+	private static int[][][] randCombs;
 	
 	public Manager(String[] args) throws Exception{
 		ArrayList<Instance> instances;
@@ -70,11 +71,11 @@ public class Manager{
 				final long configToTest = comb.getMaxComb();
 				System.out.println("Max comb: " + configToTest);
 				System.out.println("Combination per thread: " + K/MAX_THREADS + " resto: " + K%MAX_THREADS);
-				ArrayList<ArrayList<ArrayList<Long>>> randCombs = new ArrayList<ArrayList<ArrayList<Long>>>();
 				randCombs = randCombinations(sizes, configToTest);
+//				printRandCombs(randCombs);
 				for(int i=0; i<MAX_THREADS; i++){
 	//				int[] currentCombination = comb.getCombination();
-					threads[i] = new Thread(new Task1(data, nClust, i, randCombs.get(i), configs));
+					threads[i] = new Thread(new Task1(data, nClust, i, randCombs[i], randCombs[i].length, configs));
 					threads[i].start();
 				}
 				for(int i=0; i<MAX_THREADS; i++){
@@ -155,11 +156,10 @@ public class Manager{
 		bestConfig.outputOnFile(data, time, seed, distanceFunction);
 	}
 	
-	public static ArrayList<ArrayList<ArrayList<Long>>> randCombinations(ArrayList<Integer> sizes, long configToTest){
-		
-		ArrayList<ArrayList<ArrayList<Long>>> randCombs = new ArrayList<ArrayList<ArrayList<Long>>>();
+	public static int[][][] randCombinations(ArrayList<Integer> sizes, long configToTest){
+		int[][][] randCombs = new int[MAX_THREADS][(K/MAX_THREADS) + (K%MAX_THREADS)][nClust];
 		Random rand = new Random(seed);
-		long val;
+		int val;
 		int qty = K/MAX_THREADS;
 		for(int i=0; i<MAX_THREADS; i++){
 			if(i == MAX_THREADS-1){
@@ -167,28 +167,23 @@ public class Manager{
 			}
 			for(int j=0; j<qty; j++){
 				for(int h=0; h<nClust; h++){
-					val = rand.nextLong();
-					for(Long l : randCombs.get(i).get(j)){
-						if(val == l || val < 0 || val > sizes.get(j)){
-							val = rand.nextLong();
-						}
-					}
-					randCombs.get(i).get(j).add(val);
+					val = rand.nextInt(sizes.get(h));
+					randCombs[i][j][h] = val;
 				}
 			}
 		}
 		return randCombs;
 	}
 	
-	public static void printRandCombs(ArrayList<ArrayList<ArrayList<Long>>> randCombs){
+	public static void printRandCombs(int[][][] randCombs){
 		int qty = K/MAX_THREADS;
 		for(int i=0; i<MAX_THREADS; i++){
 			if(i == MAX_THREADS-1){
 				qty = (K/MAX_THREADS) + (K%MAX_THREADS);
 			}
 			for(int j=0; j<qty; j++){
-				for(Long l : randCombs.get(i).get(j)){
-					System.err.println(l);
+				for(int h=0; h<nClust; h++){
+					System.err.println(randCombs[i][j][h]);
 				}
 			}
 		}

@@ -116,7 +116,7 @@ public class Configuration{
 	
 	public void outputOnFile(Instances data, double time, int seed, String distance) throws Exception{
 		//PrintWriter pw = new PrintWriter("C:/Users/dav_0/Desktop/output.txt", "UTF-8");
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/Davide/Desktop/output.txt"));
+		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.txt"));
 		bw.write("modified kMeans\n ==============");
 		bw.newLine();
 		bw.append("Seed: " + seed + "\n" + "DistanceMethod: " + distance);
