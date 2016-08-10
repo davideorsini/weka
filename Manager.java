@@ -25,7 +25,6 @@ public class Manager{
 	private static int seed;
 	private Configuration[] configs;
 	private Configuration currentConfig;
-	private long[] combToThread;
 	private static int K;
 	
 	public Manager(String[] args) throws Exception{
@@ -55,8 +54,6 @@ public class Manager{
 		//In caso in cui K != inf
 		if(!args[4].equalsIgnoreCase("inf")){
 			K = Integer.parseInt(args[4]);
-			combToThread = new long[K];
-			Random rand = new Random(seed);
 			ArrayList<Integer> sizes = new ArrayList<Integer>();
 			for (int i=0; i<nClust; i++) {
 				sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
@@ -73,26 +70,11 @@ public class Manager{
 				final long configToTest = comb.getMaxComb();
 				System.out.println("Max comb: " + configToTest);
 				System.out.println("Combination per thread: " + K/MAX_THREADS + " resto: " + K%MAX_THREADS);
-				for(int i=0; i<K; i++){
-					int j = 0;
-					long val = rand.nextLong();
-					//int val = rand.nextInt((int)configToTest);
-					while(val == combToThread[j] || val > configToTest || val < 0){
-							val = rand.nextLong();
-					}
-					combToThread[i] = val;
-				}
-
+				ArrayList<ArrayList<ArrayList<Long>>> randCombs = new ArrayList<ArrayList<ArrayList<Long>>>();
+				randCombs = randCombinations(sizes, configToTest);
 				for(int i=0; i<MAX_THREADS; i++){
 	//				int[] currentCombination = comb.getCombination();
-					if(i == MAX_THREADS-1){
-						threads[i] = new Thread(new Task1(data, nClust, combToThread, i, seed, 
-								configs, comb, i*MAX_THREADS, (K/MAX_THREADS)+(K%MAX_THREADS)));
-					}
-					else{
-						threads[i] = new Thread(new Task1(data, nClust, combToThread, i, seed, 
-								configs, comb, i*MAX_THREADS, (K/MAX_THREADS)));
-					}
+					threads[i] = new Thread(new Task1(data, nClust, i, randCombs.get(i), configs));
 					threads[i].start();
 				}
 				for(int i=0; i<MAX_THREADS; i++){

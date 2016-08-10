@@ -8,24 +8,16 @@ public class Task1 implements Runnable{
 	private int nClust;
 	private int id;
 	private Configuration[] configs;
-	private long[] combToThread;
-	private int seed;
-	private Combinations firstComb;
-	private int offset;
-	private int stride;
+	private ArrayList<ArrayList<Long>> randCombs_id;
 	
-	public Task1(Instances data, int nClust, long[] combToThread, 
-					int id, int seed, Configuration[] configs,
-					Combinations firstComb, int offset, int stride){
+	public Task1(Instances data, int nClust, int id,
+			ArrayList<ArrayList<Long>> randCombs_id,
+					Configuration[] configs){
 		this.data = data;
 		this.nClust = nClust;
-		this.combToThread = combToThread;
 		this.id = id;
 		this.configs = configs;
-		this.firstComb = firstComb;
-		this.offset = offset;
-		this.stride = stride;
-		System.out.println(offset + " - " + stride);
+		this.randCombs_id = randCombs_id;
 	}
 	
 	public void run(){
