@@ -3,37 +3,38 @@ package weka.clusterers;
 import java.util.ArrayList;
 import weka.core.Instances;
 
-public class Task implements Runnable{
+public class Task1 implements Runnable{
 	private Instances data;
 	private int nClust;
-	private Combinations comb;
 	private int id;
 	private Configuration[] configs;
-	private long qty;
+	private long[] combToThread;
+	private int seed;
+	private Combinations firstComb;
+	private int offset;
+	private int stride;
 	
-	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
-			int[] firstComb, int[] offsetComb, int id, 
-			Configuration[] configs){
+	public Task1(Instances data, int nClust, long[] combToThread, 
+					int id, int seed, Configuration[] configs,
+					Combinations firstComb, int offset, int stride){
 		this.data = data;
 		this.nClust = nClust;
-		this.qty = qty;
-		//controllare l'offset e che non sfori
-		comb = new Combinations(sizes, firstComb, offsetComb);
+		this.combToThread = combToThread;
 		this.id = id;
 		this.configs = configs;
+		this.firstComb = firstComb;
+		this.offset = offset;
+		this.stride = stride;
+		System.out.println(offset + " - " + stride);
 	}
 	
 	public void run(){
 		Configuration best = null;
 //		System.out.println("started thread " + id + " at " + (double)System.nanoTime()/1000000000);
-		for(int i=0; i<qty; i++){
-//			int[] combi = comb.getCombination();
-//			System.err.print("{ ");
-//			for(int j=0; j<3; j++){
-//				System.err.print(combi[j] + " ");
-//			}
+		for(int i=offset; i<offset+stride; i++){
+//			System.out.println(offset + " - " + stride);
 //			System.err.println("}" + " " + "id: " + id);
-			configs[id] = new Configuration(data, nClust, comb.getCombination());
+			configs[id] = new Configuration(data, nClust, firstComb.int2Comb(combToThread[i]));
 			//controllo la best per il costo
 			if(best == null){
 				best = configs[id];

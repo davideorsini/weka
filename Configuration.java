@@ -40,7 +40,7 @@ public class Configuration{
 				}
 				if(i<data.numInstances()){
 					costs[j] = getCentroidAt(k).euclideanDistance(i, data);
-//					System.out.println(costs[j] + " ");
+					//System.out.println(costs[j] + " ");
 					j++;
 				}
 			}
@@ -84,7 +84,7 @@ public class Configuration{
 			int index = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<nClust; jj++){
-//				System.out.println(costs[jj] + " - " + min);
+				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
@@ -115,9 +115,9 @@ public class Configuration{
 	}
 	
 	public void outputOnFile(Instances data, double time, int seed, String distance) throws Exception{
-		//PrintWriter pw = new PrintWriter("C:/Users/Davide/Desktop/output.txt", "UTF-8");
+		//PrintWriter pw = new PrintWriter("C:/Users/dav_0/Desktop/output.txt", "UTF-8");
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/Davide/Desktop/output.txt"));
-		bw.write("myClust\n ==============");
+		bw.write("modified kMeans\n ==============");
 		bw.newLine();
 		bw.append("Seed: " + seed + "\n" + "DistanceMethod: " + distance);
 		bw.newLine();
