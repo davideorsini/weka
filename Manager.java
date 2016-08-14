@@ -152,12 +152,31 @@ public class Manager{
 		printCluster(firstConfig, nClust);
 		printCluster(bestConfig, nClust);
 		
+		double p = clusterGoodness(bestConfig);
+		
 		//variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime)/1000000000;
 		System.out.println("Execution time: " + time + " s");
 //		firstConfig.outputOnFile(data, time, seed, distanceFunction);
-		bestConfig.outputOnFile(data, time, seed, distanceFunction);
+		bestConfig.outputOnFile(data, time, seed, p, distanceFunction);
+	}
+	
+	public static double clusterGoodness(Configuration c){
+		double min = Double.MAX_VALUE;
+		double max = 0.0;
+		int val = 0;
+		for(int i=0; i<nClust; i++){
+			val = c.getCentroidAt(i).getNumElements();
+			if(val < min){
+				min = val;
+			}
+			if(val > max){
+				max = val;
+			}
+		}
+		System.err.println(max/min);
+		return max/min;
 	}
 	
 	public static int[][][] randCombinations(ArrayList<Integer> sizes){

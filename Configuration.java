@@ -110,7 +110,8 @@ public class Configuration{
 		System.out.println();
 	}
 	
-	public void outputOnFile(Instances data, double time, int seed, String distance) throws Exception{
+	public void outputOnFile(Instances data, double time, int seed, 
+			double p, String distance) throws Exception{
 		//PrintWriter pw = new PrintWriter("C:/Users/dav_0/Desktop/output.txt", "UTF-8");
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.txt"));
 		bw.write("modified kMeans\n ==============");
@@ -127,6 +128,8 @@ public class Configuration{
 			bw.newLine();
 		}
 		bw.newLine();
+		bw.newLine();
+		bw.append("Cluster Goodness: " + p);
 		bw.newLine();
 		bw.append("Execution time: " + time + " s");
 		bw.close();
