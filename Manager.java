@@ -28,6 +28,7 @@ public class Manager{
 	private static int K;
 	private static int[][][] randCombs;
 	private static ArrayList<Integer> sizes;
+	private double delta;
 	
 	public Manager(String[] args) throws Exception{
 		ArrayList<Instance> instances;
@@ -36,6 +37,7 @@ public class Manager{
 		seed = Integer.parseInt(args[2]);
 		String distanceFunction = args[3];
 		threads = new Thread[MAX_THREADS];
+		delta = Double.parseDouble(args[5]);
 		
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
@@ -65,7 +67,12 @@ public class Manager{
 				System.err.println();
 //				firstConfig.printStatus();
 				System.out.println("Combination per thread: " + K/MAX_THREADS + " resto: " + K%MAX_THREADS);
-				randCombs = randCombinations(sizes);
+				if(delta == 0){
+					randCombs = randCombinations(sizes);
+				}
+				if(delta != 0){
+					randCombs = randCombinationsDelta(sizes, firstConfig, data, delta);
+				}
 //				printRandCombs(randCombs);
 				int val = K/MAX_THREADS;
 				for(int i=0; i<MAX_THREADS; i++){
@@ -169,6 +176,41 @@ public class Manager{
 						range = 1;
 					}
 					val = rand.nextInt(range);
+					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
+				}
+			}
+		}
+		return randCombs;
+	}
+	
+	public static int[][][] randCombinationsDelta(ArrayList<Integer> sizes,
+			Configuration firstConf, Instances data, double delta){
+		int[][][] randCombs = new int[MAX_THREADS][(K/MAX_THREADS) + (K%MAX_THREADS)][nClust];
+		Random rand = new Random();
+		int val = 0;
+		int qty = K/MAX_THREADS;
+		for(int i=0; i<MAX_THREADS; i++){
+			if(i == MAX_THREADS-1){
+				qty = (K/MAX_THREADS) + (K%MAX_THREADS);
+			}
+			for(int j=0; j<qty; j++){
+				for(int h=0; h<nClust; h++){
+					int range = sizes.get(h);
+					if(range == 0){
+						range = 1;
+					}
+					
+					while(true){
+						double cost = 0;	
+						val = rand.nextInt(range);
+						for(int ii=0; ii<data.instance(val).numAttributes(); ii++){
+							cost += Math.pow(data.instance(val).value(ii) - data.instance(firstConf.getCentroidAt(h).getID()).value(ii),2);
+						}
+						cost = Math.sqrt(cost);
+						if(cost >= delta){
+							break;
+						}
+					}
 					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
 				}
 			}
