@@ -16,6 +16,7 @@ public class Centroid extends Instance{
 	}
 	
 	public double euclideanDistance(int instanceID, Instances data){
+//		System.out.println(instanceID);
 		double cost = 0;
 		for(int i=0; i<data.instance(instanceID).numAttributes(); i++){
 			cost += Math.pow(data.instance(instanceID).value(i) - data.instance(this.id).value(i),2);
@@ -35,12 +36,10 @@ public class Centroid extends Instance{
 		return this.instanceList;
 	}
 	
-	public synchronized ArrayList<Integer> getAllInstances(){
+	public ArrayList<Integer> getAllInstances(){
 		ArrayList<Integer> toRet = instanceList;
-		for(Integer i : instanceList){
-			if(i != getID()){
-				return toRet;
-			}
+		if(alreadyExist(getID())){
+			return toRet;
 		}
 		toRet.add(getID());
 		Collections.sort(toRet);
@@ -77,8 +76,24 @@ public class Centroid extends Instance{
 	}
 	
 	public void addInstance(int id){
-		this.instanceList.add(id);
-		this.numOfElments++;
+		instanceList.add(id);		
+		numOfElments++;
+	}
+	
+	public boolean alreadyExist(int id){
+		for(Integer i : instanceList){
+			if(i == id){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public int getID(int i){
+		if(instanceList.size() == 0){
+			return clusterID;
+		}
+		return instanceList.get(i);
 	}
 	
 	public int getNumElements(){

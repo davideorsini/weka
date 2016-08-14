@@ -18,16 +18,14 @@ public class Task1 implements Runnable{
 		this.nClust = nClust;
 		this.id = id;
 		this.configs = configs;
-		this.randCombs_id = randCombs_id;
 		this.qty = qty;
+		this.randCombs_id = randCombs_id;
 	}
 	
 	public void run(){
 		Configuration best = null;
 //		System.out.println("started thread " + id + " at " + (double)System.nanoTime()/1000000000);
 		for(int i=0; i<qty; i++){
-//			System.out.println(offset + " - " + stride);
-//			System.err.println("}" + " " + "id: " + id);
 			configs[id] = new Configuration(data, nClust, randCombs_id[i]);
 			//controllo la best per il costo
 			if(best == null){

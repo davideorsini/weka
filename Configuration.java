@@ -33,16 +33,12 @@ public class Configuration{
 		clusterStatus = chooseRandomCentroid(nClust, seed, data);
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
-			int j = 0;
-			for(int k=0; k<nClust; k++){
-				while(i == getCentroidAt(k).getID()){
+			for(int j=0; j<nClust; j++){
+				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
 					i++;
 				}
-				if(i<data.numInstances()){
-					costs[j] = getCentroidAt(k).euclideanDistance(i, data);
-					//System.out.println(costs[j] + " ");
-					j++;
-				}
+				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+				//System.out.println(costs[j] + " ");
 			}
 			
 			//assegno l'istanza al cluster piu' vicino
@@ -69,17 +65,16 @@ public class Configuration{
 		}
 //		for(int i=0;i<nClust;i++)
 			//	System.out.println(clusterStatus.get(i).getID());
-			//System.out.println(centroidsID[i]);
+//			System.err.println(data.numInstances());
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
-			int j = 0;
-			for(int k=0; k<nClust; k++){
-				while(i == getCentroidAt(k).getID()){
+			for(int j=0; j<nClust; j++){
+				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
 					i++;
 				}
-				costs[j] = getCentroidAt(k).euclideanDistance(i, data);
+				
+				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
 				//System.out.println(costs[j] + " ");
-				j++;
 			}
 			int index = 0;
 			double min = Double.MAX_VALUE;
@@ -112,6 +107,7 @@ public class Configuration{
 			}
 			System.out.println();
 		}
+		System.out.println();
 	}
 	
 	public void outputOnFile(Instances data, double time, int seed, String distance) throws Exception{
@@ -153,28 +149,28 @@ public class Configuration{
 		return true;		
 	}
 	
-//	public boolean isChanged(Configuration c){
-//		//controllo che non ci siano stati scambi tra i cluster
-//		boolean flag = false;
-//		for(int i=0; i<clusterStatus.size(); i++){
-//			if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
-//				flag = true;
-//				break;
-//			}
-//		}
-//		return flag;
-//	}
-	
 	public boolean isChanged(Configuration c){
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
 		for(int i=0; i<clusterStatus.size(); i++){
-			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
+			if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
 				flag = true;
+				break;
 			}
 		}
 		return flag;
 	}
+	
+//	public boolean isChanged(Configuration c){
+//		//controllo che non ci siano stati scambi tra i cluster
+//		boolean flag = false;
+//		for(int i=0; i<clusterStatus.size(); i++){
+//			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
+//				flag = true;
+//			}
+//		}
+//		return flag;
+//	}
 	
 //	public boolean isChanged(Configuration c){
 //		//controllo che non ci siano stati scambi tra i cluster

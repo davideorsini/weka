@@ -71,9 +71,9 @@ public class Combinations{
 			return null;
 		}
 		//salto la prima configurazione quando capita
-//		if(currentCombination == firstCombination){
-//			decreaseUnit(currentCombination.length-1);
-//		}
+		if(currentCombination == firstCombination){
+			decreaseUnit(currentCombination.length-1);
+		}
 		
 		int[] toRet = new int[clustersSize.length];
 		toRet = currentCombination;

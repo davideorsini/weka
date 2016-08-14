@@ -15,7 +15,7 @@ import weka.core.converters.ArffSaver;
 
 public class Manager{	
 	private Configuration bestConfig = null;
-	private Configuration firstConfig;
+	private static Configuration firstConfig;
 	private Thread[] threads;
 	private Combinations comb;
 	private static final int MAX_THREADS = 4;
@@ -27,6 +27,7 @@ public class Manager{
 	private Configuration currentConfig;
 	private static int K;
 	private static int[][][] randCombs;
+	private static ArrayList<Integer> sizes;
 	
 	public Manager(String[] args) throws Exception{
 		ArrayList<Instance> instances;
@@ -55,27 +56,23 @@ public class Manager{
 		//In caso in cui K != inf
 		if(!args[4].equalsIgnoreCase("inf")){
 			K = Integer.parseInt(args[4]);
-			ArrayList<Integer> sizes = new ArrayList<Integer>();
-			for (int i=0; i<nClust; i++) {
-				sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
-			}
-			int[] firstCombination = new int[nClust];
-			for(int i=0; i<nClust; i++){
-				firstCombination[i] = firstConfig.getCentroidAt(i).getID();
-			}
-			firstConfig.printStatus();
-			comb = new Combinations(sizes, firstCombination);
-			
 			while(flag){
-				configs = new Configuration[MAX_THREADS];
-				final long configToTest = comb.getMaxComb();
-				System.out.println("Max comb: " + configToTest);
+				sizes = new ArrayList<Integer>();
+				for (int i=0; i<nClust; i++) {
+					sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
+				}
+				System.err.println();
+				System.err.println();
+//				firstConfig.printStatus();
 				System.out.println("Combination per thread: " + K/MAX_THREADS + " resto: " + K%MAX_THREADS);
-				randCombs = randCombinations(sizes, configToTest);
+				randCombs = randCombinations(sizes);
 //				printRandCombs(randCombs);
+				int val = K/MAX_THREADS;
 				for(int i=0; i<MAX_THREADS; i++){
-	//				int[] currentCombination = comb.getCombination();
-					threads[i] = new Thread(new Task1(data, nClust, i, randCombs[i], randCombs[i].length, configs));
+					if(i == MAX_THREADS-1){
+						val = K/MAX_THREADS + K%MAX_THREADS;
+					}
+					threads[i] = new Thread(new Task1(data, nClust, i, randCombs[i], val, configs));
 					threads[i].start();
 				}
 				for(int i=0; i<MAX_THREADS; i++){
@@ -86,10 +83,10 @@ public class Manager{
 						bestConfig = configs[i].clone();
 					}
 				}
-				bestConfig.printStatus();
-				firstConfig.printStatus();
-	//			printCluster(firstConfig, nClust);
-	//			printCluster(bestConfig, nClust);
+//				firstConfig.printStatus();
+//				bestConfig.printStatus();
+				printCluster(firstConfig, nClust);
+				printCluster(bestConfig, nClust);
 				flag = bestConfig.isChanged(firstConfig);
 				System.out.println(flag);
 				firstConfig = bestConfig.clone();
@@ -98,7 +95,7 @@ public class Manager{
 		}
 		else{
 			while(flag){
-				ArrayList<Integer> sizes = new ArrayList<Integer>();
+				 sizes = new ArrayList<Integer>();
 				for (int i=0; i<nClust; i++) {
 					sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
 				}
@@ -132,8 +129,8 @@ public class Manager{
 						bestConfig = configs[i].clone();
 					}
 				}
-				bestConfig.printStatus();
 				firstConfig.printStatus();
+				bestConfig.printStatus();
 	//			printCluster(firstConfig, nClust);
 	//			printCluster(bestConfig, nClust);
 				flag = bestConfig.isChanged(firstConfig);
@@ -145,7 +142,7 @@ public class Manager{
 		}
 		System.out.println("threads terminated " + count);
 		
-//		printCluster(firstConfig, nClust);
+		printCluster(firstConfig, nClust);
 		printCluster(bestConfig, nClust);
 		
 		//variabile fine calcolo del tempo di esecuzione
@@ -156,9 +153,9 @@ public class Manager{
 		bestConfig.outputOnFile(data, time, seed, distanceFunction);
 	}
 	
-	public static int[][][] randCombinations(ArrayList<Integer> sizes, long configToTest){
+	public static int[][][] randCombinations(ArrayList<Integer> sizes){
 		int[][][] randCombs = new int[MAX_THREADS][(K/MAX_THREADS) + (K%MAX_THREADS)][nClust];
-		Random rand = new Random(seed);
+		Random rand = new Random();
 		int val;
 		int qty = K/MAX_THREADS;
 		for(int i=0; i<MAX_THREADS; i++){
@@ -167,8 +164,12 @@ public class Manager{
 			}
 			for(int j=0; j<qty; j++){
 				for(int h=0; h<nClust; h++){
-					val = rand.nextInt(sizes.get(h));
-					randCombs[i][j][h] = val;
+					int range = sizes.get(h);
+					if(range == 0){
+						range = 1;
+					}
+					val = rand.nextInt(range);
+					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
 				}
 			}
 		}
@@ -183,13 +184,14 @@ public class Manager{
 			}
 			for(int j=0; j<qty; j++){
 				for(int h=0; h<nClust; h++){
-					System.err.println(randCombs[i][j][h]);
+					System.err.print(randCombs[i][j][h] + " ");
 				}
+				System.err.println();
 			}
 		}
 	}
 	
-	public synchronized static void printCluster(Configuration c, int nClust){
+	public static void printCluster(Configuration c, int nClust){
 		for(int i=0; i<nClust; i++){
 			System.out.println("Cluster " + "[" + i + "]");
 			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
