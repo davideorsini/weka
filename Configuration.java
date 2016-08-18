@@ -110,29 +110,49 @@ public class Configuration{
 		System.out.println();
 	}
 	
-	public void outputOnFile(Instances data, double time, int seed, 
-			double p, String distance) throws Exception{
-		//PrintWriter pw = new PrintWriter("C:/Users/dav_0/Desktop/output.txt", "UTF-8");
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.txt"));
-		bw.write("modified kMeans\n ==============");
-		bw.newLine();
-		bw.append("Seed: " + seed + "\n" + "DistanceMethod: " + distance);
+	public void outputARFF(Instances data, String[] args, Configuration c) throws Exception{
+		ArrayList<Integer> mc = c.membershipCluster(data);
+		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.arff"));
+		bw.write("@relation clustered");
 		bw.newLine();
 		bw.newLine();
-		bw.append("Full Data: (" + data.numInstances() + ") " + "100%");
-		bw.newLine();
-		bw.newLine();
-		for(int i=0; i<clusterCount; i++){
-			bw.append("Cluster " + i + ": (" + getCentroidAt(i).getNumElements()
-					+") " + (getCentroidAt(i).getNumElements()*100)/data.numInstances() + "%");
+		for(int i=1; i<data.numAttributes()+1; i++){
+			bw.append("@attribute att" + i + " numeric");
 			bw.newLine();
 		}
 		bw.newLine();
+		bw.append("@data");
 		bw.newLine();
-		bw.append("Cluster Goodness: " + p);
+		bw.append("%");
 		bw.newLine();
-		bw.append("Execution time: " + time + " s");
+		bw.append("% " + data.numInstances());
+		bw.newLine();
+		bw.append("%");
+		bw.newLine();
+		for(int i=0; i<data.numInstances(); i++){
+			for(int j=0; j<data.numAttributes(); j++){
+				bw.append(data.instance(i).value(data.attribute(j)) + ",");
+			}
+			bw.append(mc.get(i).toString());
+			if(i <= data.numInstances()-2){
+				bw.newLine();
+			}
+		}
 		bw.close();
+	}
+	
+	public ArrayList<Integer> membershipCluster(Instances data){
+		ArrayList<Integer> mc = new ArrayList<Integer>();
+		for(int index=0; index<data.numInstances(); index++){
+			for(int i=0; i< clusterStatus.size(); i++){
+				for(int j=0; j<getCentroidAt(i).getInstanceList().size(); j++){
+					if(index == getCentroidAt(i).getInstanceList().get(j)){
+						mc.add(i);
+					}
+				}
+			}
+		}
+		return mc;
 	}
 	
 	public double getTotalCost(){	
