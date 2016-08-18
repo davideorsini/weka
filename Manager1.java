@@ -1,28 +1,37 @@
 package weka.clusterers;
 
-import java.util.*;
-
-import weka.attributeSelection.BestFirst;
-import weka.core.*;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
 import weka.core.Instances;
 import weka.core.converters.ArffLoader.ArffReader;
-import weka.core.converters.ArffSaver;
 
-public class Manager{	
+public class Manager1{
+/*
+	##################################################################
+	Per le stringhe
+	"string" 15 1 17000 3 6
+	*/
+	private  int alphaLen;
+	private int N;
+	private static int seed;
+	private int min;
+	private int max;
+	private char[] alphabet;
+	private Instances data;
+	
 	private Configuration bestConfig = null;
 	private static Configuration firstConfig;
 	private Thread[] threads;
 	private Combinations comb;
 	private static final int MAX_THREADS = 4;
-	private Instances data;
 	private boolean isChanged;
 	private static int nClust;
-	private static int seed;
 	private Configuration[] configs;
 	private Configuration currentConfig;
 	private static int K;
@@ -30,18 +39,39 @@ public class Manager{
 	private static ArrayList<Integer> sizes;
 	private double delta;
 	
-	public Manager(String[] args) throws Exception{
-		ArrayList<Instance> instances;
-		nClust = Integer.parseInt(args[1]);
-		String filePath = args[2];
-		seed = Integer.parseInt(args[3]);
-		String distanceFunction = args[4];
+	public Manager1(String[] args) throws Exception{
+		alphaLen = Integer.parseInt(args[1]);
+		seed = Integer.parseInt(args[2]);
+		N = Integer.parseInt(args[3]);
+		min = Integer.parseInt(args[4]);
+		max = Integer.parseInt(args[5]);
+
+		nClust = 10;
+		K = 500;
+		delta = 0.0;
 		threads = new Thread[MAX_THREADS];
-		delta = Double.parseDouble(args[6]);
 		
-		BufferedReader reader = new BufferedReader(new FileReader(filePath));
+		alphabet = alphaCreator(alphaLen);
+		
+		Random rand = new Random(seed);
+		String[] s = new String[N];
+		
+		for(int i=0; i<N; i++){
+			int len = rand.nextInt(alphaLen*max);
+			while(len < alphaLen*min || len > alphaLen*max){
+				len = rand.nextInt(26*max);
+			}
+			s[i] = "";
+			for(int j=0; j<len; j++){
+				int val = rand.nextInt(alphaLen);
+				s[i] += alphabet[val];
+			}
+		}
+		createStringARFF(s);
+//		System.out.println(computeLevenshteinDistance(s[1], s[2]));
+		BufferedReader reader = new BufferedReader(new FileReader("C:/Users/dav_0/Desktop/stringTest.arff"));
 		ArffReader arff = new ArffReader(reader);
-		data = arff.getData();	
+		data = arff.getData();
 		
 		currentConfig = new Configuration(data, nClust, seed);
 		firstConfig = currentConfig.clone();
@@ -57,7 +87,7 @@ public class Manager{
 		
 		//In caso in cui K != inf
 		if(!args[4].equalsIgnoreCase("inf")){
-			K = Integer.parseInt(args[5]);
+//			K = Integer.parseInt(args[5]);
 			while(flag){
 				sizes = new ArrayList<Integer>();
 				for (int i=0; i<nClust; i++) {
@@ -150,7 +180,7 @@ public class Manager{
 //		System.out.println("threads terminated " + count);
 		
 //		printCluster(firstConfig, nClust);
-		printCluster(bestConfig, nClust);
+//		printCluster(bestConfig, nClust);
 		
 		double p = clusterGoodness(bestConfig);
 		
@@ -159,7 +189,69 @@ public class Manager{
 		double time = (endTime - startTime)/1000000000;
 		System.out.println("Execution time: " + time + " s");
 //		firstConfig.outputOnFile(data, time, seed, distanceFunction);
-		bestConfig.outputARFF(data, args, bestConfig);
+		bestConfig.outputStringARFF(data, args, bestConfig);
+	}
+
+	private int minimum(int a, int b, int c) {                            
+        return Math.min(Math.min(a, b), c);                                      
+    }                                                                            
+                                                                                 
+    public int computeLevenshteinDistance(String a, String b) {      
+        int[][] distance = new int[a.length() + 1][b.length() + 1];        
+                                                                                 
+        for (int i = 0; i <= a.length(); i++)                                 
+            distance[i][0] = i;                                                  
+        for (int j = 1; j <= b.length(); j++)                                 
+            distance[0][j] = j;                                                  
+                                                                                 
+        for (int i = 1; i <= a.length(); i++)                                 
+            for (int j = 1; j <= b.length(); j++)                             
+                distance[i][j] = minimum(                                        
+                        distance[i - 1][j] + 1,                                  
+                        distance[i][j - 1] + 1,                                  
+                        distance[i - 1][j - 1] + ((a.charAt(i - 1) == b.charAt(j - 1)) ? 0 : 1));
+                                                                                 
+        return distance[a.length()][b.length()];                           
+    }
+
+	public void createStringARFF(String[] s) throws IOException{
+		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/stringTest.arff"));
+		bw.write("@relation clustered");
+		bw.newLine();
+		bw.newLine();
+		bw.append("@attribute att1 string");
+		bw.newLine();
+		bw.newLine();
+		bw.append("@data");
+		bw.newLine();
+		bw.append("%");
+		bw.newLine();
+		bw.append("% " + N);
+		bw.newLine();
+		bw.append("%");
+		bw.newLine();
+		for(int i=0; i<N; i++){
+			bw.append(s[i]);
+			if(i <= N-2){
+				bw.newLine();
+			}
+		}
+		bw.close();
+	}
+
+	public char[] alphaCreator(int alphaLen){
+		if(alphaLen < 2){
+			alphaLen = 2;
+		}
+		if(alphaLen > 26){
+			alphaLen = 26;
+		}
+		char[] alphabet = new char[alphaLen];
+		for(int i=0; i<alphaLen; i++){
+			alphabet[i] = (char)(i + 65);
+//			 System.out.println(alphabet[i]);
+		}
+		return alphabet;
 	}
 	
 	public static double clusterGoodness(Configuration c){

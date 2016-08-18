@@ -141,6 +141,35 @@ public class Configuration{
 		bw.close();
 	}
 	
+	public void outputStringARFF(Instances data, String[] args, Configuration c) throws Exception{
+		ArrayList<Integer> mc = c.membershipCluster(data);
+		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputString.arff"));
+		bw.write("@relation clustered");
+		bw.newLine();
+		bw.newLine();
+		bw.append("@attribute att1 string");
+		bw.newLine();
+		bw.newLine();
+		bw.append("@data");
+		bw.newLine();
+		bw.append("%");
+		bw.newLine();
+		bw.append("% " + data.numInstances());
+		bw.newLine();
+		bw.append("%");
+		bw.newLine();
+		for(int i=0; i<data.numInstances(); i++){
+			for(int j=0; j<data.numAttributes(); j++){
+				bw.append(data.instance(i).stringValue(data.attribute(j)) + ",");
+			}
+			bw.append(mc.get(i).toString());
+			if(i <= data.numInstances()-2){
+				bw.newLine();
+			}
+		}
+		bw.close();
+	}
+	
 	public ArrayList<Integer> membershipCluster(Instances data){
 		ArrayList<Integer> mc = new ArrayList<Integer>();
 		for(int index=0; index<data.numInstances(); index++){
