@@ -8,22 +8,22 @@ import java.util.*;
 
 import weka.core.Instances;
 
-public class Configuration{
+public class Configuration1{
 	private ArrayList<Centroid> clusterStatus;
 	private double result = 0.0;
 	private int clusterCount;
 	
-	public Configuration(Instances data, int nClust, int seed){
+	public Configuration1(Instances data, int nClust, int seed){
 		buildFirstConf(data, nClust, seed);
 		computeCost();
 	}
 	
-	public Configuration(Instances data, int nClust, int[] centroidsID) {
+	public Configuration1(Instances data, int nClust, int[] centroidsID) {
 		buildNextConf(data, nClust, centroidsID);
 		computeCost();
 	}
 	
-	private Configuration(ArrayList<Centroid> clusterStatus) {
+	private Configuration1(ArrayList<Centroid> clusterStatus) {
 		this.clusterStatus = clusterStatus;
 		computeCost();
 	}
@@ -37,7 +37,7 @@ public class Configuration{
 				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
 					i++;
 				}
-				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+				costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
 				//System.out.println(costs[j] + " ");
 			}
 			
@@ -73,7 +73,7 @@ public class Configuration{
 					i++;
 				}
 				
-				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+				costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
 				//System.out.println(costs[j] + " ");
 			}
 			int index = 0;
@@ -181,7 +181,7 @@ public class Configuration{
 		for(int index=0; index<data.numInstances(); index++){
 			for(int i=0; i< clusterStatus.size(); i++){
 				for(int j=0; j<getCentroidAt(i).getInstanceList().size(); j++){
-					if(index == getCentroidAt(i).getInstanceList().get(j)){
+					if(data.instance(index).stringValue(data.attribute(0)).equals(data.instance(getCentroidAt(i).getAllInstances().get(j)).stringValue(0))){
 						mc.add(i);
 					}
 				}
@@ -198,7 +198,7 @@ public class Configuration{
 		return this.clusterStatus.get(index);
 	}
 	
-	public boolean isBetterThan(Configuration c){
+	public boolean isBetterThan(Configuration1 c){
 		//controllo che il costo totale sia minore
 //		System.out.println(c.getTotalCost() + " >= " + result + "?");
 		if(c.getTotalCost() < result){
@@ -207,7 +207,7 @@ public class Configuration{
 		return true;		
 	}
 	
-	public boolean isChanged(Configuration c){
+	public boolean isChanged(Configuration1 c){
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
 		for(int i=0; i<clusterStatus.size(); i++){
@@ -219,7 +219,7 @@ public class Configuration{
 		return flag;
 	}
 	
-//	public boolean isChanged(Configuration c){
+//	public boolean isChanged(Configuration1 c){
 //		//controllo che non ci siano stati scambi tra i cluster
 //		boolean flag = false;
 //		for(int i=0; i<clusterStatus.size(); i++){
@@ -230,7 +230,7 @@ public class Configuration{
 //		return flag;
 //	}
 	
-//	public boolean isChanged(Configuration c){
+//	public boolean isChanged(Configuration1 c){
 //		//controllo che non ci siano stati scambi tra i cluster
 //		for(int i=0; i<clusterStatus.size(); i++){
 //			for(int j=0; j<clusterStatus.get(i).getNumElements(); j++){
@@ -269,7 +269,7 @@ public class Configuration{
 		return this.clusterCount;
 	}
 	
-	public Configuration clone(){
-		return new Configuration(clusterStatus);
+	public Configuration1 clone(){
+		return new Configuration1(clusterStatus);
 	}
 }
