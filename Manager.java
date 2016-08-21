@@ -61,7 +61,7 @@ public class Manager{
 		double bestCG = Double.MAX_VALUE;
 		double cg = 0;
 		boolean flag = true;
-		int N = 0;
+		int nc = 0;
 		
 		//variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
@@ -76,8 +76,9 @@ public class Manager{
 			}
 //			firstConfig.printStatus();		
 			bestConfig = currentConfig.clone();
+			flag = true;
 			//In caso in cui K != inf
-			if(!args[4].equalsIgnoreCase("inf")){
+			if(!args[5].equalsIgnoreCase("inf")){
 				K = Integer.parseInt(args[5]);
 				while(flag){
 					sizes = new ArrayList<Integer>();
@@ -157,19 +158,26 @@ public class Manager{
 					count++;
 				}
 			}
-			cg = clusterGoodness(bestConfig);
+			/*cg = clusterGoodness(bestConfig);
 //			System.err.println(cg + " " +  bestCG);
 			if(cg < bestCG){
 				optimalNClust = bestConfig.clone();
 				N = m;
+				bestCG = cg;
+			}*/
+			cg = bestConfig.getTotalCost();
+			System.err.println(cg + " " +  bestCG);
+			if(cg < bestCG){
+				optimalNClust = bestConfig.clone();
+				nc = m;
 				bestCG = cg;
 			}
 		}
 //		System.out.println("threads terminated " + count);		
 		
 //		printCluster(firstConfig, nClust);
-		printCluster(bestConfig, nClust);
-		printCluster(optimalNClust, N);
+//		printCluster(bestConfig, nClust);
+		printCluster(optimalNClust, nc);
 		
 //		double p = clusterGoodness(bestConfig);
 		

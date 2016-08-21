@@ -46,7 +46,6 @@ public class Manager1{
 		maxClust = Integer.parseInt(args[2]);
 		String filePath = args[3];
 		seed = Integer.parseInt(args[4]);
-		K = Integer.parseInt(args[5]);
 		delta = Double.parseDouble(args[6]);
 		
 		N = 100;
@@ -83,7 +82,7 @@ public class Manager1{
 //		bestConfig = currentConfig.clone();
 		configs = new Configuration1[MAX_THREADS];
 		
-		int N = 0;
+		int nc = 0;
 		int count = 0;
 		double bestCG = Double.MAX_VALUE;
 		double cg = 0;
@@ -101,8 +100,10 @@ public class Manager1{
 			if(optimalNClust == null){
 				optimalNClust = bestConfig.clone();
 			}
+			flag = true;
 			//In caso in cui K != inf
-			if(!args[4].equalsIgnoreCase("inf")){
+			if(!args[5].equalsIgnoreCase("inf")){
+				K = Integer.parseInt(args[5]);
 				while(flag){
 					sizes = new ArrayList<Integer>();
 					for (int i=0; i<nClust; i++) {
@@ -142,7 +143,7 @@ public class Manager1{
 			}
 			else{
 				while(flag){
-					 sizes = new ArrayList<Integer>();
+					sizes = new ArrayList<Integer>();
 					for (int i=0; i<nClust; i++) {
 						sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
 					}
@@ -181,19 +182,26 @@ public class Manager1{
 					count++;
 				}
 			}
-			cg = clusterGoodness(bestConfig);
+			/*cg = clusterGoodness(bestConfig);
 //			System.err.println(cg + " " +  bestCG);
 			if(cg < bestCG){
 				optimalNClust = bestConfig.clone();
-				N = m;
+				nc = m;
+				bestCG = cg;
+			}*/
+			cg = bestConfig.getTotalCost();
+			System.err.println(cg + " " +  bestCG);
+			if(cg < bestCG){
+				optimalNClust = bestConfig.clone();
+				nc = m;
 				bestCG = cg;
 			}
 		}
 //		System.out.println("threads terminated " + count);
 		
 //		printCluster(firstConfig, nClust);
-		printCluster(bestConfig, nClust);
-		printCluster(optimalNClust, N);
+//		printCluster(bestConfig, nClust);
+		printCluster(optimalNClust, nc);
 		
 		
 		//variabile fine calcolo del tempo di esecuzione
