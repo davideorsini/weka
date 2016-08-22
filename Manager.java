@@ -19,7 +19,7 @@ public class Manager{
 	private static Configuration optimalNClust = null;
 	private Thread[] threads;
 	private Combinations comb;
-	private static final int MAX_THREADS = 4;
+	private static int MAX_THREADS = 4;
 	private Instances data;
 	private boolean isChanged;
 	private static int nClust;
@@ -119,19 +119,25 @@ public class Manager{
 			}
 			else{
 				while(flag){
-					 sizes = new ArrayList<Integer>();
+					sizes = new ArrayList<Integer>();
 					for (int i=0; i<nClust; i++) {
 						sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
+//						System.out.println("size: " + sizes.get(i));
 					}
+					printCluster(firstConfig, nClust);
 					int[] firstCombination = new int[nClust];
 					for(int i=0; i<nClust; i++){
 						firstCombination[i] = firstConfig.getCentroidAt(i).getID();
+//						System.err.println(firstConfig.getCentroidAt(i).getID());
 					}
 	//				firstConfig.printStatus();
 					comb = new Combinations(sizes, firstCombination);
 					configs = new Configuration[MAX_THREADS];
 					final long configToTest = comb.getMaxComb();
-	//				System.out.println("Max comb: " + configToTest);
+					if(configToTest < MAX_THREADS){
+						MAX_THREADS = (int)configToTest;
+					}
+					System.out.println("Max comb: " + configToTest);
 					long valQty = configToTest / MAX_THREADS;
 	//				System.out.println(valQty + " " + (configToTest - (valQty*MAX_THREADS)));
 					long[] qty = new long[MAX_THREADS];
@@ -153,6 +159,7 @@ public class Manager{
 							bestConfig = configs[i].clone();
 						}
 					}
+//					printCluster(bestConfig, nClust);
 					flag = bestConfig.isChanged(firstConfig);
 					firstConfig = bestConfig.clone();
 					count++;
@@ -166,7 +173,7 @@ public class Manager{
 				bestCG = cg;
 			}*/
 			cg = bestConfig.getTotalCost();
-			System.err.println(cg + " " +  bestCG);
+			System.out.println("cg: " + cg + " " +  "bestCG: " + bestCG);
 			if(cg < bestCG){
 				optimalNClust = bestConfig.clone();
 				nc = m;

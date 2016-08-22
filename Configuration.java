@@ -28,7 +28,7 @@ public class Configuration{
 		computeCost();
 	}
 	
-	private void buildFirstConf(Instances data, int nClust, int seed){
+		private void buildFirstConf(Instances data, int nClust, int seed){
 		clusterCount = nClust;
 		clusterStatus = chooseRandomCentroid(nClust, seed, data);
 		for(int i=0; i<data.numInstances(); i++){
@@ -43,17 +43,19 @@ public class Configuration{
 			
 			//assegno l'istanza al cluster piu' vicino
 			int index = 0;
+			double cost = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<nClust; jj++){
 				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-					getCentroidAt(index).addTotalCost(costs[jj]);
+//					getCentroidAt(index).addTotalCost(costs[jj]);
+					cost = costs[jj];
 				}
 			}
 			
-			getCentroidAt(index).addInstance(i);
+			getCentroidAt(index).addInstance(i, cost);
 		}		
 	}
 	
@@ -77,16 +79,18 @@ public class Configuration{
 				//System.out.println(costs[j] + " ");
 			}
 			int index = 0;
+			double cost = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<nClust; jj++){
 				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-					getCentroidAt(index).addTotalCost(costs[jj]);
+//					getCentroidAt(index).addTotalCost(costs[jj]);
+					cost = costs[jj];
 				}
 			}
-			getCentroidAt(index).addInstance(i);
+			getCentroidAt(index).addInstance(i, cost);
 		}
 	}
 	
@@ -113,7 +117,7 @@ public class Configuration{
 	public void outputARFF(Instances data, String[] args) throws Exception{
 		ArrayList<Integer> mc = membershipCluster(data);
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.arff"));
-		bw.write("@relation clustered");
+		bw.write("@relation " + args[3]);
 		bw.newLine();
 		bw.newLine();
 		for(int i=1; i<data.numAttributes()+1; i++){
@@ -148,7 +152,7 @@ public class Configuration{
 	public void outputStringARFF(Instances data, String[] args) throws Exception{
 		ArrayList<Integer> mc = membershipCluster(data);
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputString.arff"));
-		bw.write("@relation clustered");
+		bw.write("@relation " + args[3]);
 		bw.newLine();
 		bw.newLine();
 		bw.append("@attribute att1 string");
@@ -180,10 +184,13 @@ public class Configuration{
 		ArrayList<Integer> mc = new ArrayList<Integer>();
 		for(int index=0; index<data.numInstances(); index++){
 			for(int i=0; i< clusterStatus.size(); i++){
-				for(int j=0; j<getCentroidAt(i).getInstanceList().size(); j++){
-					if(index == getCentroidAt(i).getInstanceList().get(j)){
-						mc.add(i);
-					}
+//				for(int j=0; j<getCentroidAt(i).getAllInstances().size(); j++){
+//					if(index == getCentroidAt(i).getAllInstances().get(j)){
+//						mc.add(i);
+//					}
+//				}
+				if(getCentroidAt(i).alreadyExist(index)){
+					mc.add(i);
 				}
 			}
 		}
@@ -245,17 +252,21 @@ public class Configuration{
 	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, int seed, Instances data){
 		Random randInstanceIndex = new Random(seed);
 		ArrayList<Centroid> centroidList = new ArrayList<Centroid>();
-		int centroidIndex = randInstanceIndex.nextInt(data.numInstances());
-		centroidList.add(new Centroid(centroidIndex));
-		for(int i=0; i<nClust-1; i++){
+		int centroidIndex;// = randInstanceIndex.nextInt(data.numInstances());
+//		centroidList.add(new Centroid(centroidIndex));
+		for(int i=0; i<nClust; i++){
 			int j=0;
 			centroidIndex = randInstanceIndex.nextInt(data.numInstances());
 			while(j<centroidList.size()){
-				if(centroidIndex != centroidList.get(j).getID()){
-					j++;
-				}
-				else{
-					centroidIndex = randInstanceIndex.nextInt(data.numInstances());
+				for(int k=0; k<centroidList.size(); k++){
+					if(centroidIndex != centroidList.get(k).getID()){
+						j++;
+					}
+					else{
+						centroidIndex = randInstanceIndex.nextInt(data.numInstances());
+						k = 0;
+						j = 0;
+					}
 				}
 			}
 			centroidList.add(new Centroid(centroidIndex));

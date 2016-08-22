@@ -6,7 +6,7 @@ import java.util.Collections;
 import weka.core.Instances;
 
 public class Centroid extends Instance{
-	private double totalCost;
+	private double totalCost = 0;
 	private ArrayList<Integer> instanceList = new ArrayList<Integer>();
 	private int clusterID;
 	private int numOfElments = 0;
@@ -93,9 +93,12 @@ public class Centroid extends Instance{
 		totalCost += cost;
 	}
 	
-	public void addInstance(int id){
-		instanceList.add(id);		
-		numOfElments++;
+	public void addInstance(int id, double cost){
+		if(id != this.id){
+			instanceList.add(id);
+			numOfElments++;
+		}
+		totalCost += cost;
 	}
 	
 	public boolean alreadyExist(int id){

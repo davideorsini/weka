@@ -30,7 +30,7 @@ public class Manager1{
 	private static Configuration1 optimalNClust = null;
 	private Thread[] threads;
 	private Combinations comb;
-	private static final int MAX_THREADS = 4;
+	private static int MAX_THREADS = 4;
 	private boolean isChanged;
 	private static int nClust;
 	private Configuration1[] configs;
@@ -48,7 +48,7 @@ public class Manager1{
 		seed = Integer.parseInt(args[4]);
 		delta = Double.parseDouble(args[6]);
 		
-		N = 100;
+		N = 50;
 		minLen = 3;
 		maxLen = 6;
 		alphaLen = 10;
@@ -156,6 +156,9 @@ public class Manager1{
 					configs = new Configuration1[MAX_THREADS];
 					final long configToTest = comb.getMaxComb();
 	//				System.out.println("Max comb: " + configToTest);
+					if(configToTest < MAX_THREADS){
+						MAX_THREADS = (int)configToTest;
+					}
 					long valQty = configToTest / MAX_THREADS;
 	//				System.out.println(valQty + " " + (configToTest - (valQty*MAX_THREADS)));
 					long[] qty = new long[MAX_THREADS];
