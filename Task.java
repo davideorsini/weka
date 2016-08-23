@@ -10,18 +10,34 @@ public class Task implements Runnable{
 	private int id;
 	private Configuration[] configs;
 	private long qty;
+	private int[][] randCombs_id;
+	private DistanceType t;
 	
-	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
-			int[] firstComb, int[] offsetComb, int id, 
-			Configuration[] configs){
+	private Task(Instances data, int nClust, long qty, 
+			int id, Configuration[] configs, DistanceType t){
 		this.data = data;
 		this.nClust = nClust;
 		this.qty = qty;
-		//controllare l'offset e che non sfori
-		comb = new Combinations(sizes, firstComb, offsetComb);
 		this.id = id;
 		this.configs = configs;
+		this.t= t;
 	}
+	
+	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
+			int[] firstComb, int[] offsetComb, int id, 
+			Configuration[] configs, DistanceType t){
+		this(data, nClust, qty, id, configs, t);
+		comb = new Combinations(sizes, firstComb, offsetComb);
+	}
+	
+	public Task(Instances data, int nClust, int id,
+			int[][] randCombs_id, int qty,
+			Configuration[] configs, DistanceType t){
+		this(data, nClust, qty, id, configs, t);
+		this.randCombs_id = randCombs_id;
+	}
+	
+	
 	
 	public void run(){
 		Configuration best = null;
@@ -33,7 +49,12 @@ public class Task implements Runnable{
 //				System.err.print(combi[j] + " ");
 //			}
 //			System.err.println("}" + " " + "id: " + id);
-			configs[id] = new Configuration(data, nClust, comb.getCombination());
+			if(randCombs_id == null){
+				configs[id] = new Configuration(data, nClust, comb.getCombination(), t);
+			}
+			else{
+				configs[id] = new Configuration(data, nClust, randCombs_id[i], t);
+			}
 			//controllo la best per il costo
 			if(best == null){
 				best = configs[id];

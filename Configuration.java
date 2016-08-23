@@ -13,13 +13,13 @@ public class Configuration{
 	private double result = 0.0;
 	private int clusterCount;
 	
-	public Configuration(Instances data, int nClust, int seed){
-		buildFirstConf(data, nClust, seed);
+	public Configuration(Instances data, int nClust, int seed, DistanceType t){
+		buildFirstConf(data, nClust, seed, t);
 		computeCost();
 	}
 	
-	public Configuration(Instances data, int nClust, int[] centroidsID) {
-		buildNextConf(data, nClust, centroidsID);
+	public Configuration(Instances data, int nClust, int[] centroidsID, DistanceType t) {
+		buildNextConf(data, nClust, centroidsID, t);
 		computeCost();
 	}
 	
@@ -28,7 +28,7 @@ public class Configuration{
 		computeCost();
 	}
 	
-		private void buildFirstConf(Instances data, int nClust, int seed){
+	private void buildFirstConf(Instances data, int nClust, int seed, DistanceType t){
 		clusterCount = nClust;
 		clusterStatus = chooseRandomCentroid(nClust, seed, data);
 		for(int i=0; i<data.numInstances(); i++){
@@ -37,7 +37,17 @@ public class Configuration{
 				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
 					i++;
 				}
-				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+				switch(t){
+					case EUCLIDEAN: 
+						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+						break;
+					case LEVENSHTEIN:
+						costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
+						break;
+					default:
+						System.err.println("Undefined Distance");
+				}
+					
 				//System.out.println(costs[j] + " ");
 			}
 			
@@ -50,7 +60,7 @@ public class Configuration{
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-//					getCentroidAt(index).addTotalCost(costs[jj]);
+	//					getCentroidAt(index).addTotalCost(costs[jj]);
 					cost = costs[jj];
 				}
 			}
@@ -59,7 +69,7 @@ public class Configuration{
 		}		
 	}
 	
-	private void buildNextConf(Instances data, int nClust, int[] centroidsID){
+	private void buildNextConf(Instances data, int nClust, int[] centroidsID, DistanceType t){
 		clusterCount = nClust;
 		clusterStatus = new ArrayList<Centroid>();
 		for(Integer i : centroidsID){
@@ -74,8 +84,14 @@ public class Configuration{
 				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
 					i++;
 				}
-				
-				costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+				switch(t){
+				case EUCLIDEAN: 
+					costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+					break;
+				case LEVENSHTEIN:
+					costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
+					break;
+				}	
 				//System.out.println(costs[j] + " ");
 			}
 			int index = 0;
@@ -151,6 +167,7 @@ public class Configuration{
 	
 	public void outputStringARFF(Instances data, String[] args) throws Exception{
 		ArrayList<Integer> mc = membershipCluster(data);
+		System.out.println("size mc: " + mc.size());
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputString.arff"));
 		bw.write("@relation " + args[3]);
 		bw.newLine();
@@ -218,24 +235,15 @@ public class Configuration{
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
 		for(int i=0; i<clusterStatus.size(); i++){
-			if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
-				flag = true;
-				break;
+			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
+				if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
+					flag = true;
+					break;
+				}
 			}
 		}
 		return flag;
 	}
-	
-//	public boolean isChanged(Configuration c){
-//		//controllo che non ci siano stati scambi tra i cluster
-//		boolean flag = false;
-//		for(int i=0; i<clusterStatus.size(); i++){
-//			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
-//				flag = true;
-//			}
-//		}
-//		return flag;
-//	}
 	
 //	public boolean isChanged(Configuration c){
 //		//controllo che non ci siano stati scambi tra i cluster
