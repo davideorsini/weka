@@ -28,6 +28,39 @@ public class Configuration{
 		computeCost();
 	}
 	
+	public double buildTestConfig(Instances data, Instances trainData, Instances testData, DistanceType t){
+		double[] costs = new double[clusterCount];
+		double totalCost = 0.0;
+		for(int i=0; i<testData.numInstances(); i++){
+			for(int j=0; j<clusterCount; j++){
+				switch(t){
+				case EUCLIDEAN: 
+					costs[j] = getCentroidAt(j).euclideanDistance(i, trainData, testData);
+					break;
+				case LEVENSHTEIN:
+					costs[j] = Centroid.computeLevenshteinDistance(testData.instance(i).stringValue(0), trainData.instance(getCentroidAt(j).getID()).stringValue(0));
+					break;
+				default:
+					System.err.println("Undefined Distance");
+				}
+			}
+			int index = 0;
+			double cost = 0;
+			double min = Double.MAX_VALUE;
+			for(int jj=0; jj<clusterCount; jj++){
+				//System.out.println(costs[jj]);
+				if(costs[jj] < min){
+					min = costs[jj];
+					index = jj;
+	//					getCentroidAt(index).addTotalCost(costs[jj]);
+					cost = costs[jj];
+					totalCost += cost;
+				}
+			}
+		}
+		return totalCost;
+	}
+	
 	private void buildFirstConf(Instances data, int nClust, Random rand, DistanceType t){
 		clusterCount = nClust;
 		clusterStatus = chooseRandomCentroid(nClust, rand, data);
@@ -42,7 +75,7 @@ public class Configuration{
 						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
 						break;
 					case LEVENSHTEIN:
-						costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
+						costs[j] = Centroid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
 						break;
 					default:
 						System.err.println("Undefined Distance");
@@ -89,7 +122,7 @@ public class Configuration{
 					costs[j] = getCentroidAt(j).euclideanDistance(i, data);
 					break;
 				case LEVENSHTEIN:
-					costs[j] = getCentroidAt(j).computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
+					costs[j] = Centroid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
 					break;
 				}	
 				//System.out.println(costs[j] + " ");

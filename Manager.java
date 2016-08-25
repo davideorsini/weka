@@ -32,7 +32,7 @@ public class Manager {
 	private boolean isChanged;
 	private static int nClust;
 	private static int seed;
-	private Configuration[] configs;
+	private static Configuration[] configs;
 	private Configuration currentConfig;
 	private static int K = 0;
 	private static int[][][] randCombs;
@@ -60,7 +60,7 @@ public class Manager {
 		
 		minClust = Integer.parseInt(args[1]);
 		maxClust = Integer.parseInt(args[2]);
-		// nClust = Integer.parseInt(args[1]);
+
 		String filePath = args[3];
 		seed = Integer.parseInt(args[4]);
 		threads = new Thread[MAX_THREADS];
@@ -102,9 +102,10 @@ public class Manager {
 		// bestConfig = currentConfig.clone();
 		configs = new Configuration[MAX_THREADS];
 
+		nClust = crossValidation(data, t, rand);
+		
 		int count = 0;
 		int n_test = 3;
-		double bestCG = Double.MAX_VALUE;
 		double cg = 0.0;
 		boolean flag = true;
 		int nc = 0;
@@ -112,111 +113,69 @@ public class Manager {
 		// variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
 
-		for (int m = minClust; m <= maxClust; m++) {
-			for(int n=0; n<n_test; n++){
-				nClust = m;
-				currentConfig = new Configuration(data, nClust, rand, t);
-				firstConfig = currentConfig.clone();
+		for(int n=0; n<n_test; n++){
+			currentConfig = new Configuration(data, nClust, rand, t);
+			firstConfig = currentConfig.clone();
 //				printCluster(firstConfig, m);
-				if (optimalNClust == null) {
-					optimalNClust = currentConfig.clone();
+			if (optimalNClust == null) {
+				optimalNClust = currentConfig.clone();
+			}
+//			firstConfig.printStatus();
+			bestConfig = currentConfig.clone();
+			flag = true;
+			while (flag) {
+//				printCluster(firstConfig, m);
+				sizes = new ArrayList<Integer>();
+				for (int i = 0; i < nClust; i++) {
+					sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
 				}
-	//			firstConfig.printStatus();
-				bestConfig = currentConfig.clone();
-				flag = true;
-				while (flag) {
-	//				printCluster(firstConfig, m);
-					sizes = new ArrayList<Integer>();
-					for (int i = 0; i < nClust; i++) {
-						sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
-					}
-					// System.err.println();
-					// System.err.println();
-					// firstConfig.printStatus();
-					// System.out.println("Combination per thread: " + K/MAX_THREADS
-					// + " resto: " + K%MAX_THREADS);
-					if (K != 0) {
-						if (delta == 0) {
-							randCombs = randCombinations(sizes, rand);
-						}
-						if (delta != 0) {
-							randCombs = randCombinationsDelta(sizes, firstConfig, data, delta);
-						}
-						// printRandCombs(randCombs);
-						int val = K / MAX_THREADS;
-						for (int i = 0; i < MAX_THREADS; i++) {
-							if (i == MAX_THREADS - 1) {
-								val = K / MAX_THREADS + K % MAX_THREADS;
-							}
-							threads[i] = new Thread(new Task(data, nClust, i, randCombs[i], val, configs, t));
-							threads[i].start();
-						}
-					} else {
-						int[] firstCombination = new int[nClust];
-						for (int i = 0; i < nClust; i++) {
-							firstCombination[i] = firstConfig.getCentroidAt(i).getID();
-							// System.err.println(firstConfig.getCentroidAt(i).getID());
-						}
-						// firstConfig.printStatus();
-						comb = new Combinations(sizes, firstCombination);
-						configs = new Configuration[MAX_THREADS];
-						final long configToTest = comb.getMaxComb();
-						if (configToTest < MAX_THREADS) {
-							MAX_THREADS = (int) configToTest;
-						}
-						System.out.println("Max comb: " + configToTest);
-						long valQty = configToTest / MAX_THREADS;
-						// System.out.println(valQty + " " + (configToTest -
-						// (valQty*MAX_THREADS)));
-						long[] qty = new long[MAX_THREADS];
-						for (int i = 0; i < MAX_THREADS; i++) {
-							qty[i] = valQty;
-							if (i == (MAX_THREADS - 1)) {
-								qty[i] += configToTest - (valQty * MAX_THREADS);
-							}
-						}
-						for (int i = 0; i < MAX_THREADS; i++) {
-							threads[i] = new Thread(new Task(data, nClust, qty[i], sizes, firstCombination,
-									comb.getCombination(qty[i]), i, configs, t));
-							threads[i].start();
-						}
-					}
-					for (int i = 0; i < MAX_THREADS; i++) {
-						threads[i].join();
-					}
-					for (int i = 0; i < MAX_THREADS; i++) {
-						if (configs[i].isBetterThan(bestConfig)) {
-							bestConfig = configs[i].clone();
-						}
-					}
-	//				printCluster(bestConfig, m);
-					flag = bestConfig.isChanged(firstConfig);
-					firstConfig = bestConfig.clone();
-					count++;
+				// System.err.println();
+				// System.err.println();
+				// firstConfig.printStatus();
+				// System.out.println("Combination per thread: " + K/MAX_THREADS
+				// + " resto: " + K%MAX_THREADS);
+				if (delta == 0) {
+					randCombs = randCombinations(sizes, rand);
 				}
-				
-				 cg = clusterGoodness(bestConfig);
-				 System.err.println(cg + " " + bestCG); 
-				 if(cg < bestCG){ 
-					 optimalNClust = bestConfig.clone();
-					 nc = m; 
-					 bestCG = cg; 
-				 }
+				if (delta != 0) {
+					randCombs = randCombinationsDelta(sizes, firstConfig, data, delta);
+				}
+				// printRandCombs(randCombs);
+				int val = K / MAX_THREADS;
+				for (int i = 0; i < MAX_THREADS; i++) {
+					if (i == MAX_THREADS - 1) {
+						val = K / MAX_THREADS + K % MAX_THREADS;
+					}
+					threads[i] = new Thread(new Task(data, nClust, i, randCombs[i], val, configs, t));
+					threads[i].start();
+				}
+				for (int i = 0; i < MAX_THREADS; i++) {
+					threads[i].join();
+				}
+				for (int i = 0; i < MAX_THREADS; i++) {
+					if (configs[i].isBetterThan(bestConfig)) {
+						bestConfig = configs[i].clone();
+					}
+				}
+//				printCluster(bestConfig, m);
+				flag = bestConfig.isChanged(firstConfig);
+				firstConfig = bestConfig.clone();
+				count++;
 			}
 		}
 		// System.out.println("threads terminated " + count);
 
 		// printCluster(firstConfig, nClust);
 		// printCluster(bestConfig, nClust);
-		printCluster(optimalNClust, nc);
-
+		printCluster(optimalNClust, nClust);
+		cg = clusterGoodness(optimalNClust, cgt);
 		// double p = clusterGoodness(bestConfig);
 
 		// variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime) / 1000000000;
 		System.out.println("Execution time: " + time + " s");
-		// bestConfig.outputARFF(data, args);
+		outputFile(time, optimalNClust, seed, nClust, K, delta, t, cgt, cg, n_test);
 		switch(t){
 			case EUCLIDEAN:
 				optimalNClust.outputARFF(data, args);
@@ -228,8 +187,216 @@ public class Manager {
 				System.err.println("Error output file");
 		}
 	}
+	
+	public int crossValidation(Instances data, DistanceType t, Random rand) throws Exception{
+		int tot = data.numInstances();
+		int train_qty = (90*tot)/100;
+		int test_qty = tot - train_qty;
+		int[] instances2train = new int[train_qty];
+		int[] instances2test = new int[test_qty];
+		
+		//istance per il file di training
+		for(int i=0; i<train_qty; i++){
+			int val = rand.nextInt(data.numInstances());
+			for(int j=0; j<train_qty; j++){
+				if(instances2train[j] == val){
+					val = rand.nextInt(data.numInstances());
+					j = 0;
+				}
+			}
+			instances2train[i] = val;
+		}
+		
+		//istanze per il file di test
+		for(int i=0; i<test_qty; i++){
+			int val = rand.nextInt(data.numInstances());
+			for(int j=0; j<train_qty; j++){
+				if(instances2train[j] == val){
+					val = rand.nextInt(data.numInstances());
+					j = 0;
+				}
+			}
+			instances2test[i] = val;
+		}
+		String[] path = new String[2];
+		try{
+			switch(t){
+				case EUCLIDEAN:
+					path = createTrainingTestArff(data, instances2train, instances2test, "numeric", t);
+					break;
+				case LEVENSHTEIN:
+					path = createTrainingTestArff(data, instances2train, instances2test, "string", t);
+					break;
+				default:
+					System.err.println("Training/Test file error");
+					break;
+			}
+		}
+		catch(Exception e){
+			System.err.println(e);
+		}
+		
+		//ricerca n cluster ottimale
+		int count = 0;
+		int n_test = 3;
+		double cost = Double.MAX_VALUE;
+		boolean flag = true;
+		int nc = 0;
+		
+		BufferedReader trainReader = new BufferedReader(new FileReader(path[0]));
+		ArffReader trainArff = new ArffReader(trainReader);
+		Instances trainData = trainArff.getData();
+		BufferedReader testReader = new BufferedReader(new FileReader(path[1]));
+		ArffReader testArff = new ArffReader(testReader);
+		Instances testData = testArff.getData();
+		Configuration optimal = null;
 
-	public static double clusterGoodness(Configuration c) {
+		for (int m = minClust; m <= maxClust; m++) {
+//			System.err.println("nclust: " + m);
+			for(int n=0; n<n_test; n++){
+//				System.err.println("ntest: " + n);
+				nClust = m;
+				currentConfig = new Configuration(trainData, nClust, rand, t);
+				firstConfig = currentConfig.clone();
+//				printCluster(firstConfig, m);
+				if (optimal == null) {
+					optimal = currentConfig.clone();
+				}
+	//			firstConfig.printStatus();
+				bestConfig = currentConfig.clone();
+				flag = true;
+				count = 0;
+				while (flag) {
+//					System.err.println("count: " + count);
+	//				printCluster(firstConfig, m);
+					sizes = new ArrayList<Integer>();
+					for (int i = 0; i < nClust; i++) {
+						sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
+					}
+					// System.err.println();
+					// System.err.println();
+					// firstConfig.printStatus();
+					// System.out.println("Combination per thread: " + K/MAX_THREADS
+					// + " resto: " + K%MAX_THREADS);
+					if (delta == 0) {
+						randCombs = randCombinations(sizes, rand);
+					}
+					if (delta != 0) {
+						randCombs = randCombinationsDelta(sizes, firstConfig, trainData, delta);
+					}
+					// printRandCombs(randCombs);
+					int val = K / MAX_THREADS;
+					for (int i = 0; i < MAX_THREADS; i++) {
+						if (i == MAX_THREADS - 1) {
+							val = K / MAX_THREADS + K % MAX_THREADS;
+						}
+						threads[i] = new Thread(new Task(trainData, nClust, i, randCombs[i], val, configs, t));
+						threads[i].start();
+					}
+					for (int i = 0; i < MAX_THREADS; i++) {
+						threads[i].join();
+					}
+					for (int i = 0; i < MAX_THREADS; i++) {
+						if (configs[i].isBetterThan(bestConfig)) {
+							bestConfig = configs[i].clone();
+						}
+					}
+//					printCluster(bestConfig, m);
+					flag = bestConfig.isChanged(firstConfig);
+					firstConfig = bestConfig.clone();
+					count++;
+				}
+				
+				if(bestConfig.isBetterThan(optimal)){
+					optimal = bestConfig.clone();
+				}
+			}
+			double a = 0.0;
+			a = optimal.buildTestConfig(data, trainData, testData, t);
+			System.err.println("a: " + a + " cost: " + cost + " nc: " + nc);
+			if(a < cost){
+				cost = a;
+				nc = m;
+			}
+		}
+		
+		return nc;
+	}
+	
+	public static String[] createTrainingTestArff(Instances data, int[] instances2train, int[] instances2test, String type, DistanceType t) throws IOException{
+		String[] path = new String[2];
+		path[0] = "C:/Users/dav_0/Desktop/training.arff"; //trainPath
+		path[1] = "C:/Users/dav_0/Desktop/test.arff"; //testPath 
+		for(int f=0; f<2; f++){
+			BufferedWriter bw = new BufferedWriter(new FileWriter(path[f]));
+			if(f == 0){
+				bw.write("@relation training"); 
+			}
+			else{
+				bw.write("@relation test");
+			}
+			bw.newLine();
+			bw.newLine();
+			for(int i=0; i<data.numAttributes(); i++){
+				bw.append("@attribute att" + (i+1) + " " + type);
+				bw.newLine();
+			}
+			bw.newLine();
+			bw.append("@data");
+			bw.newLine();
+			bw.append("%");
+			bw.newLine();
+			int len = 0;
+			if(f == 0){
+				len = instances2train.length;
+			}
+			else{
+				len = instances2test.length;
+			}
+			bw.append("% " + len);
+			bw.newLine();
+			bw.append("%");
+			bw.newLine();
+			for(int i=0; i<len; i++){
+				for(int j=0; j<data.numAttributes(); j++){
+					switch(t){
+						case EUCLIDEAN:
+							if(f == 0){
+								bw.append("" + data.instance(instances2train[i]).value(data.attribute(j)));
+							}
+							else{
+								bw.append("" + data.instance(instances2test[i]).value(data.attribute(j)));
+							}
+							if(j != data.numAttributes()-1){
+								bw.append(",");
+							}
+							break;
+						case LEVENSHTEIN:
+							if(f == 0){
+								bw.append("" + data.instance(instances2train[i]).stringValue(data.attribute(j)));
+							}
+							else{
+								bw.append("" + data.instance(instances2test[i]).stringValue(data.attribute(j)));
+							}
+							if(j != data.numAttributes()-1){
+								bw.append(",");
+							}
+							break;
+						default:
+							System.err.println("Error Distance File");
+							break;
+					}
+				}
+				if(i != len-1){
+					bw.newLine();
+				}
+			}
+			bw.close();
+		}
+		return path;
+	}
+
+	public static double clusterGoodness(Configuration c, GoodnessType cgt) {
 		switch(cgt){
 			case ELEMENT_QTY:
 				double min = Double.MAX_VALUE;
@@ -384,6 +551,41 @@ public class Manager {
 				bw.newLine();
 			}
 		}
+		bw.close();
+	}
+
+	public static void outputFile(double time, Configuration c, int seed, int nClust, int K, double delta, DistanceType t, GoodnessType cgt, double cg, int n_test) throws Exception{
+		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputValues.arff"));
+		bw.write("Dati Clusterizzazione");
+		bw.newLine();
+		bw.newLine();
+		bw.append("Seed: " + seed);
+		bw.newLine();
+		bw.append("Distance Type: " + t.toString());
+		bw.newLine();
+		bw.append("GoodnessType: " + cgt.toString());
+		bw.newLine();
+		bw.append("K: " + K);
+		bw.newLine();
+		bw.append("Delta: " + delta);
+		bw.newLine();
+		bw.append("Numero test: " + n_test);
+		bw.newLine();
+		bw.append("Numero Cluster: " + nClust);
+		bw.newLine();
+		bw.append("Centroidi: ");
+		for(int i=0; i<nClust; i++){
+			bw.append("{" + c.getCentroidAt(i).getID() + "} ");
+		}
+		bw.newLine();
+		bw.append("Elementi: ");
+		for(int i=0; i<nClust; i++){
+			bw.append("(" + c.getCentroidAt(i).getNumElements() + ") ");
+		}
+		bw.newLine();
+		bw.append("Clusters Goodness: " + cg);
+		bw.newLine();
+		
 		bw.close();
 	}
 }
