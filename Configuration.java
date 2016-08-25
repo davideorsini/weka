@@ -13,8 +13,8 @@ public class Configuration{
 	private double result = 0.0;
 	private int clusterCount;
 	
-	public Configuration(Instances data, int nClust, int seed, DistanceType t){
-		buildFirstConf(data, nClust, seed, t);
+	public Configuration(Instances data, int nClust, Random rand, DistanceType t){
+		buildFirstConf(data, nClust, rand, t);
 		computeCost();
 	}
 	
@@ -28,9 +28,9 @@ public class Configuration{
 		computeCost();
 	}
 	
-	private void buildFirstConf(Instances data, int nClust, int seed, DistanceType t){
+	private void buildFirstConf(Instances data, int nClust, Random rand, DistanceType t){
 		clusterCount = nClust;
-		clusterStatus = chooseRandomCentroid(nClust, seed, data);
+		clusterStatus = chooseRandomCentroid(nClust, rand, data);
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
@@ -257,8 +257,9 @@ public class Configuration{
 //		return false;
 //	}
 	
-	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, int seed, Instances data){
-		Random randInstanceIndex = new Random(seed);
+	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, Random rand, Instances data){
+//		Random randInstanceIndex = new Random(seed);
+		Random randInstanceIndex = rand;
 		ArrayList<Centroid> centroidList = new ArrayList<Centroid>();
 		int centroidIndex;// = randInstanceIndex.nextInt(data.numInstances());
 //		centroidList.add(new Centroid(centroidIndex));
