@@ -228,11 +228,6 @@ public class Configuration{
 		ArrayList<Integer> mc = new ArrayList<Integer>();
 		for(int index=0; index<data.numInstances(); index++){
 			for(int i=0; i< clusterStatus.size(); i++){
-//				for(int j=0; j<getCentroidAt(i).getAllInstances().size(); j++){
-//					if(index == getCentroidAt(i).getAllInstances().get(j)){
-//						mc.add(i);
-//					}
-//				}
 				if(getCentroidAt(i).alreadyExist(index)){
 					mc.add(i);
 				}
