@@ -26,7 +26,8 @@ public class Manager {
 	private static DistanceType t;
 	private static GoodnessType cgt;
 	private final int n_test = 3;
-	/*
+	
+	/*INPUT PARAMETERS
 	 * "ED" 2 10 "C:/Users/dav_0/Desktop/pam_big.arff" 1 20 0 
 	 * "LD" 2 10 "C:/Users/dav_0/Desktop/stringTest.arff" 1 20 0
 	 */
