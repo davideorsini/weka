@@ -68,29 +68,30 @@ public class Manager {
 			K = Integer.parseInt(args[5]);
 		}
 		delta = Double.parseDouble(args[6]);
-		
-		N = 1000;
-		minLen = 3;
-		maxLen = 6;
-		alphaLen = 10;
-		
-		alphabet = alphaCreator(alphaLen);
-
 		rand = new Random(seed);
-		String[] s = new String[N];
-
-		for (int i = 0; i < N; i++) {
-			int len = rand.nextInt(alphaLen * maxLen);
-			while (len < alphaLen * minLen || len > alphaLen * maxLen) {
-				len = rand.nextInt(26 * maxLen);
+		
+		if(args[0].equalsIgnoreCase("LD")){
+			N = 1000;
+			minLen = 3;
+			maxLen = 6;
+			alphaLen = 10;
+			
+			alphabet = alphaCreator(alphaLen);
+			
+			String[] s = new String[N];
+			for (int i = 0; i < N; i++) {
+				int len = rand.nextInt(alphaLen * maxLen);
+				while (len < alphaLen * minLen || len > alphaLen * maxLen) {
+					len = rand.nextInt(26 * maxLen);
+				}
+				s[i] = "";
+				for (int j = 0; j < len; j++) {
+					int val = rand.nextInt(alphaLen);
+					s[i] += alphabet[val];
+				}
 			}
-			s[i] = "";
-			for (int j = 0; j < len; j++) {
-				int val = rand.nextInt(alphaLen);
-				s[i] += alphabet[val];
-			}
+			createStringARFF(s);
 		}
-		createStringARFF(s);
 
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
@@ -102,6 +103,9 @@ public class Manager {
 		// bestConfig = currentConfig.clone();
 		configs = new Configuration[MAX_THREADS];
 
+		// variabile start per il calcolo del tempo di esecuzione
+		double startTime = System.nanoTime();
+		
 		nClust = crossValidation(data, t, rand);
 		
 		int count = 0;
@@ -109,9 +113,6 @@ public class Manager {
 		double cg = 0.0;
 		boolean flag = true;
 		int nc = 0;
-
-		// variabile start per il calcolo del tempo di esecuzione
-		double startTime = System.nanoTime();
 
 		for(int n=0; n<n_test; n++){
 			currentConfig = new Configuration(data, nClust, rand, t);
@@ -198,26 +199,34 @@ public class Manager {
 		//istance per il file di training
 		for(int i=0; i<train_qty; i++){
 			int val = rand.nextInt(data.numInstances());
-			for(int j=0; j<train_qty; j++){
-				if(instances2train[j] == val){
-					val = rand.nextInt(data.numInstances());
-					j = 0;
-				}
+			while(alreadyExist(instances2train, val)){
+				val = rand.nextInt(data.numInstances());
 			}
 			instances2train[i] = val;
 		}
+//		System.out.println(data.numInstances() + "Train: ");
+//		for(int i=0; i<train_qty; i++){
+//			System.out.print(instances2train[i] + ",");
+//		}
 		
 		//istanze per il file di test
 		for(int i=0; i<test_qty; i++){
 			int val = rand.nextInt(data.numInstances());
-			for(int j=0; j<train_qty; j++){
-				if(instances2train[j] == val){
-					val = rand.nextInt(data.numInstances());
-					j = 0;
+			while(alreadyExist(instances2train, val)){
+				val = rand.nextInt(data.numInstances());
+				for(int j=0; j<i; j++){
+					if(instances2test[j] == val){
+						val = rand.nextInt(data.numInstances());
+					}
 				}
 			}
 			instances2test[i] = val;
 		}
+		
+//		System.out.println("Test: ");
+//		for(int i=0; i<test_qty; i++){
+//			System.out.print(instances2test[i] + ",");
+//		}
 		String[] path = new String[2];
 		try{
 			switch(t){
@@ -321,6 +330,17 @@ public class Manager {
 		}
 		
 		return nc;
+	}
+	
+	public boolean alreadyExist(int[] instances, int a){
+		boolean flag = false;
+		for(int i=0; i<instances.length; i++){
+			if(instances[i] == a){
+				flag = true;
+				break;
+			}
+		}
+		return flag;
 	}
 	
 	public static String[] createTrainingTestArff(Instances data, int[] instances2train, int[] instances2test, String type, DistanceType t) throws IOException{
