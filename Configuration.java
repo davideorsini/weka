@@ -1,9 +1,6 @@
 package weka.clusterers;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.*;
 
 import weka.core.Instances;
@@ -44,15 +41,12 @@ public class Configuration{
 					System.err.println("Undefined Distance");
 				}
 			}
-			int index = 0;
 			double cost = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<clusterCount; jj++){
 				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
-					index = jj;
-	//					getCentroidAt(index).addTotalCost(costs[jj]);
 					cost = costs[jj];
 					totalCost += cost;
 				}
