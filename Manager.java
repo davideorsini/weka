@@ -2,6 +2,8 @@ package weka.clusterers;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 
 import weka.core.Instances;
@@ -55,6 +57,10 @@ public class Manager {
 		}
 		delta = Double.parseDouble(args[6]);
 		rand = new Random(seed);
+		
+		if(K < MAX_THREADS){
+			MAX_THREADS = K;
+		}
 		
 		if(args[0].equalsIgnoreCase("LD")){
 			N = 1000;
@@ -230,7 +236,7 @@ public class Manager {
 //				printCluster(firstConfig, m);
 				sizes = new ArrayList<Integer>();
 				for (int i = 0; i < nClust; i++) {
-					sizes.add(firstConfig.getCentroidAt(i).getInstanceList().size());
+					sizes.add(firstConfig.getCentroidAt(i).getAllInstances().size());
 				}
 				// System.err.println();
 				// System.err.println();
@@ -256,9 +262,14 @@ public class Manager {
 					threads[i].join();
 				}
 				for (int i = 0; i < MAX_THREADS; i++) {
-					if (configs[i].isBetterThan(bestConfig)) {
-						bestConfig = configs[i].clone();
+					try {
+						if (configs[i].isBetterThan(bestConfig)) {
+							bestConfig = configs[i].clone();
+						}
+					} catch (NullPointerException e) {
+						System.err.println("Trying to call method of configs[" + i + "] " + e);
 					}
+					
 				}
 //				printCluster(bestConfig, nClust);
 				flag = bestConfig.isChanged(firstConfig);
@@ -380,25 +391,41 @@ public class Manager {
 		}
 	}
 
+	static class SizesComparator implements Comparator<Sizes>{
+		@Override public int compare(Sizes a, Sizes b){
+			return a.size < b.size ? -1 :
+				a.size == b.size ? 0 : 1;
+		}
+	}
+	
 	public static int[][][] randCombinations(int nClust, ArrayList<Integer> sizes, Configuration firstConfig, Random rand) {
 		int[][][] randCombs = new int[MAX_THREADS][(K / MAX_THREADS) + (K % MAX_THREADS)][nClust];
 		int val;
 		int qty = K / MAX_THREADS;
+		ArrayList<Sizes> s = new ArrayList<Sizes>();
+		for(int k=0; k<sizes.size(); k++){
+			s.add(new Sizes(sizes.get(k), k));
+		}
+		Collections.sort(s, new SizesComparator());
+		
 		for (int i = 0; i < MAX_THREADS; i++) {
 			if (i == MAX_THREADS - 1) {
 				qty = (K / MAX_THREADS) + (K % MAX_THREADS);
 			}
 			for (int j = 0; j < qty; j++) {
 				for (int h = 0; h < nClust; h++) {
-					int range = sizes.get(h);
+					int range = s.get(h).size;
+//					System.out.println(range);
 					if (range == 0) {
 						range = 1;
 					}
 					val = rand.nextInt(range);
 					while(alreadyExist(randCombs[i][j], val)){
 						val = rand.nextInt(range);
+//						System.out.println(val);
 					}
-					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
+					
+					randCombs[i][j][s.get(h).index] = firstConfig.getCentroidAt(s.get(h).index).getID(val);
 				}
 				if(alreadyExistComb(randCombs, randCombs[i][j], nClust)){
 					j--;
@@ -412,13 +439,19 @@ public class Manager {
 		int[][][] randCombs = new int[MAX_THREADS][(K / MAX_THREADS) + (K % MAX_THREADS)][nClust];
 		int val = 0;
 		int qty = K / MAX_THREADS;
+		ArrayList<Sizes> s = new ArrayList<Sizes>();
+		for(int k=0; k<sizes.size(); k++){
+			s.add(new Sizes(sizes.get(k), k));
+		}
+		Collections.sort(s, new SizesComparator());
+		
 		for (int i = 0; i < MAX_THREADS; i++) {
 			if (i == MAX_THREADS - 1) {
 				qty = (K / MAX_THREADS) + (K % MAX_THREADS);
 			}
 			for (int j = 0; j < qty; j++) {
 				for (int h = 0; h < nClust; h++) {
-					int range = sizes.get(h);
+					int range = s.get(h).size;
 					if (range == 0) {
 						range = 1;
 					}
@@ -433,13 +466,13 @@ public class Manager {
 						case EUCLIDEAN:
 							for (int ii = 0; ii < data.instance(val).numAttributes(); ii++) {
 								cost += Math.pow(data.instance(val).value(ii)
-										- data.instance(firstConfig.getCentroidAt(h).getID()).value(ii), 2);
+										- data.instance(firstConfig.getCentroidAt(s.get(h).index).getID()).value(ii), 2);
 							}
 							cost = Math.sqrt(cost);
 							break;
 						case LEVENSHTEIN:
 							cost += Centroid.computeLevenshteinDistance(data.instance(val).stringValue(data.instance(val).attribute(0)),
-									data.instance(firstConfig.getCentroidAt(h).getID()).stringValue(data.instance(firstConfig.getCentroidAt(h).getID()).attribute(0)));
+									data.instance(firstConfig.getCentroidAt(s.get(h).index).getID()).stringValue(data.instance(firstConfig.getCentroidAt(s.get(h).index).getID()).attribute(0)));
 							break;
 						default:
 							System.err.println("Error RandomComb Distance");
@@ -447,7 +480,7 @@ public class Manager {
 						}
 //						System.err.println("cost: " + cost + " delta: " + delta);
 					}
-					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
+					randCombs[i][j][s.get(h).index] = firstConfig.getCentroidAt(s.get(h).index).getID(val);
 				}
 				if(alreadyExistComb(randCombs, randCombs[i][j], nClust)){
 					j--;
@@ -609,6 +642,8 @@ public class Manager {
 		}
 		bw.newLine();
 		bw.append("Clusters Goodness: " + cg);
+		bw.newLine();
+		bw.append("Execution time: " + time);
 		bw.newLine();
 		
 		bw.close();
