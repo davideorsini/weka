@@ -163,11 +163,11 @@ public class Configuration{
 		bw.write("@relation " + args[3]);
 		bw.newLine();
 		bw.newLine();
-		for(int i=1; i<data.numAttributes()+1; i++){
+		for(int i=1; i<=data.numAttributes(); i++){
 			bw.append("@attribute att" + i + " numeric");
 			if(i == data.numAttributes()){
 				bw.newLine();
-				bw.append("@attribute att" + (i+1) + " cluster");
+				bw.append("@attribute cluster numeric");
 			}
 			bw.newLine();
 		}
@@ -201,7 +201,7 @@ public class Configuration{
 		bw.newLine();
 		bw.append("@attribute att1 string");
 		bw.newLine();
-		bw.append("@attribute att2 cluster");
+		bw.append("@attribute cluster numeric");
 		bw.newLine();
 		bw.newLine();
 		bw.append("@data");
