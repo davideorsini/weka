@@ -273,7 +273,7 @@ public class Manager {
 		return optimal;
 	}
 	
-	public boolean alreadyExist(int[] instances, int a){
+	public static boolean alreadyExist(int[] instances, int a){
 		boolean flag = false;
 		for(int i=0; i<instances.length; i++){
 			if(instances[i] == a){
@@ -395,7 +395,13 @@ public class Manager {
 						range = 1;
 					}
 					val = rand.nextInt(range);
+					while(alreadyExist(randCombs[i][j], val)){
+						val = rand.nextInt(range);
+					}
 					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
+				}
+				if(alreadyExistComb(randCombs, randCombs[i][j], nClust)){
+					j--;
 				}
 			}
 		}
@@ -416,10 +422,13 @@ public class Manager {
 					if (range == 0) {
 						range = 1;
 					}
-
-					while (true) {
-						double cost = 0;
+					double cost = 0;
+					while (cost < delta) {
 						val = rand.nextInt(range);
+						while(alreadyExist(randCombs[i][j], val)){
+							val = rand.nextInt(range);
+						}
+//						System.err.println(val + " " + firstConfig.getCentroidAt(h).getID());
 						switch(t){
 						case EUCLIDEAN:
 							for (int ii = 0; ii < data.instance(val).numAttributes(); ii++) {
@@ -429,26 +438,70 @@ public class Manager {
 							cost = Math.sqrt(cost);
 							break;
 						case LEVENSHTEIN:
-							for (int ii = 0; ii < data.instance(val).numAttributes(); ii++) {
-								cost += Centroid.computeLevenshteinDistance(data.instance(val).stringValue(data.instance(val).attribute(ii)),
-										data.instance(firstConfig.getCentroidAt(h).getID()).stringValue(data.instance(firstConfig.getCentroidAt(h).getID()).attribute(ii)));
-							}
+							cost += Centroid.computeLevenshteinDistance(data.instance(val).stringValue(data.instance(val).attribute(0)),
+									data.instance(firstConfig.getCentroidAt(h).getID()).stringValue(data.instance(firstConfig.getCentroidAt(h).getID()).attribute(0)));
 							break;
 						default:
 							System.err.println("Error RandomComb Distance");
 							break;
 						}
-						if (cost >= delta) {
-							break;
-						}
+//						System.err.println("cost: " + cost + " delta: " + delta);
 					}
 					randCombs[i][j][h] = firstConfig.getCentroidAt(h).getID(val);
+				}
+				if(alreadyExistComb(randCombs, randCombs[i][j], nClust)){
+					j--;
 				}
 			}
 		}
 		return randCombs;
 	}
-
+	
+	public static boolean alreadyExistComb(int[][][] combs, int[] comb, int nClust){
+		int count = 0;
+		int[] exist = new int[nClust];
+		for(int i=0; i<nClust; i++){
+			exist[i] = 0;
+		}
+		int len = K / MAX_THREADS;
+		
+		for(int i=0; i<MAX_THREADS; i++){
+			if(i == MAX_THREADS-1){
+				len = (K / MAX_THREADS) + (K % MAX_THREADS);
+			}
+			for(int j=0; j<len; j++){
+				for(int k=0; k<nClust; k++){
+					exist[k] = 0;
+				}
+				for(int k=0; k<nClust; k++){
+					for(int x=0; x<nClust; x++){
+//						System.out.println(comb[k] + " " + combs[i][j][x]);
+						if(comb[k] == combs[i][j][x]){
+							exist[k] = 1;
+						}
+						else{
+							exist[k] = 0;
+						}
+					}
+//					System.out.println();
+				}
+				count = 0;
+				for(int m=0; m<nClust; m++){
+//					System.out.print(exist[m] + " ");
+					if(exist[m] == 1){
+						count++; 
+					}
+				}
+//				System.out.println();
+				if(count == nClust){
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	public static void printRandCombs(int[][][] randCombs) {
 		int qty = K / MAX_THREADS;
 		for (int i = 0; i < MAX_THREADS; i++) {
