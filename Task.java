@@ -1,5 +1,7 @@
 package weka.clusterers;
 
+import java.util.ArrayList;
+
 import weka.core.Instances;
 
 public class Task implements Runnable{
@@ -10,6 +12,7 @@ public class Task implements Runnable{
 	private long qty;
 	private int[][] randCombs_id;
 	private DistanceType t;
+	private Combinations comb;
 	
 	private Task(Instances data, int nClust, long qty, 
 			int id, Configuration[] configs, DistanceType t){
@@ -28,13 +31,23 @@ public class Task implements Runnable{
 		this.randCombs_id = randCombs_id;
 	}
 	
-	
+	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
+			int[] firstComb, int[] offsetComb, int id, 
+			Configuration[] configs, DistanceType t){
+		this(data, nClust, qty, id, configs, t);
+		comb = new Combinations(sizes, firstComb, offsetComb);
+	}
 	
 	public void run(){
 		Configuration best = null;
 //		System.out.println("started thread " + id + " at " + (double)System.nanoTime()/1000000000);
 		for(int i=0; i<qty; i++){
-			configs[id] = new Configuration(data, nClust, randCombs_id[i], t);
+			if(randCombs_id == null){
+				configs[id] = new Configuration(data, nClust, comb.getCombination(), t);
+			}
+			else{
+				configs[id] = new Configuration(data, nClust, randCombs_id[i], t);
+			}
 			//controllo la best per il costo
 			if(best == null){
 				best = configs[id];
