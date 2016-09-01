@@ -62,29 +62,6 @@ public class Manager {
 			MAX_THREADS = K;
 		}
 		
-		if(args[0].equalsIgnoreCase("LD")){
-			N = 1000;
-			minLen = 3;
-			maxLen = 6;
-			alphaLen = 10;
-			
-			alphabet = alphaCreator(alphaLen);
-			
-			String[] s = new String[N];
-			for (int i = 0; i < N; i++) {
-				int len = rand.nextInt(alphaLen * maxLen);
-				while (len < alphaLen * minLen || len > alphaLen * maxLen) {
-					len = rand.nextInt(26 * maxLen);
-				}
-				s[i] = "";
-				for (int j = 0; j < len; j++) {
-					int val = rand.nextInt(alphaLen);
-					s[i] += alphabet[val];
-				}
-			}
-			createStringARFF(s);
-		}
-
 		BufferedReader reader = new BufferedReader(new FileReader(filePath));
 		ArffReader arff = new ArffReader(reader);
 		data = arff.getData();
@@ -570,46 +547,6 @@ public class Manager {
 		for (int i = 0; i < cluster.size(); i++) {
 			System.out.print(cluster.get(i).getID() + " ");
 		}
-	}
-
-	public char[] alphaCreator(int alphaLen) {
-		if (alphaLen < 2) {
-			alphaLen = 2;
-		}
-		if (alphaLen > 26) {
-			alphaLen = 26;
-		}
-		char[] alphabet = new char[alphaLen];
-		for (int i = 0; i < alphaLen; i++) {
-			alphabet[i] = (char) (i + 65);
-			// System.out.println(alphabet[i]);
-		}
-		return alphabet;
-	}
-
-	public void createStringARFF(String[] s) throws IOException {
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/stringTest.arff"));
-		bw.write("@relation clustered");
-		bw.newLine();
-		bw.newLine();
-		bw.append("@attribute att1 string");
-		bw.newLine();
-		bw.newLine();
-		bw.append("@data");
-		bw.newLine();
-		bw.append("%");
-		bw.newLine();
-		bw.append("% " + N);
-		bw.newLine();
-		bw.append("%");
-		bw.newLine();
-		for (int i = 0; i < N; i++) {
-			bw.append(s[i]);
-			if (i <= N - 2) {
-				bw.newLine();
-			}
-		}
-		bw.close();
 	}
 
 	public static void outputFile(double time, Configuration c, int seed, int nClust, int K, double delta, DistanceType t, GoodnessType cgt, double cg, int n_test) throws Exception{
