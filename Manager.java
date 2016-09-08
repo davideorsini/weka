@@ -2,7 +2,6 @@ package weka.clusterers;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
 
@@ -64,7 +63,7 @@ public class Manager {
 		II = Integer.parseInt(args[5]);
 		//aggiungere limite max di II come controllo
 
-		if(II< MAX_THREADS && II > 1){
+		if(II< MAX_THREADS && II >= 1){
 			MAX_THREADS = II;
 		}
 		kfold = Integer.parseInt(args[6]);
@@ -108,8 +107,8 @@ public class Manager {
 	
 	public int crossValidation(Instances data, DistanceType t, Random rand, int kfold) throws Exception{
 		int tot = data.numInstances();
-		int train_qty = (90*tot)/100;
-		int test_qty = tot - train_qty;
+		int test_qty = tot / kfold;
+		int train_qty = tot - test_qty;
 		int[] instances2train = new int[train_qty];
 		int[] instances2test = new int[test_qty];
 		
@@ -211,7 +210,7 @@ public class Manager {
 			}
 //			firstConfig.printStatus();
 			bestConfig = currentConfig.clone();
-			flag = true;
+			flag = true;			
 //			count = 0;
 			while (flag) {
 //				System.err.println("count: " + count);
@@ -224,7 +223,7 @@ public class Manager {
 					int[] firstCombination = new int[nClust];
 					for (int i = 0; i < nClust; i++) {
 						firstCombination[i] = firstConfig.getCentroidAt(i).getID();
-//						 System.err.println(firstConfig.getCentroidAt(i).getID());
+//						System.err.println(firstConfig.getCentroidAt(i).getID());
 					}
 					// firstConfig.printStatus();
 					Combinations comb = new Combinations(sizes, firstCombination);
