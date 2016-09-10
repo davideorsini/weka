@@ -1,6 +1,10 @@
 package weka.clusterers;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+//import java.util.ArrayList;
 
 import weka.core.Instances;
 
@@ -19,30 +23,6 @@ public class Task implements Runnable{
 	private Configuration c;
 	private double I;
 	
-	/*private Task(Instances data, int nClust, long qty, 
-			int id, Configuration[] configs, DistanceType t){
-		this.data = data;
-		this.nClust = nClust;
-		this.qty = qty;
-		this.id = id;
-		this.configs = configs;
-		this.t= t;
-	}
-	
-	public Task(Instances data, int nClust, int id,
-			int[][] randCombs_id, int qty,
-			Configuration[] configs, DistanceType t){
-		this(data, nClust, qty, id, configs, t);
-		this.randCombs_id = randCombs_id;
-	}
-	
-	public Task(Instances data, int nClust, long qty, ArrayList<Integer> sizes, 
-			int[] firstComb, int[] offsetComb, int id, 
-			Configuration[] configs, DistanceType t){
-		this(data, nClust, qty, id, configs, t);
-		comb = new Combinations(sizes, firstComb, offsetComb);
-	}*/
-	
 	public Task(int id, Instances data, int nElem, Configuration c, DistanceType t, int[] medoids, double I){
 		this.id = id;
 		this.data = data;
@@ -55,71 +35,66 @@ public class Task implements Runnable{
 	
 	public void run(){
 //		System.out.println(nElem);
+//		System.out.println("Start thread " + id);
+		ArrayList<Costs> arrayCost = new ArrayList<Costs>();
 		double currentCost = 0.0;
-		double minCost = Double.MAX_VALUE;
-		double maxCost = 0.0;
+		double minCost = 0.0;
+		double initCost = c.getCentroidAt(id).getTotalCost();
+//		System.out.println(initCost + " " + c.getTotalCost());
 		if(I == 0.0){
 			medoids[id] = c.getCentroidAt(id).id;
 		}
 		else{
 			for(int i=0; i<nElem; i++){
-				currentCost = 0.0;
 				switch(t){
 					case EUCLIDEAN:
-						currentCost = Manager.euclideanDistance(data.instance(c.getCentroidAt(id).id), data.instance(i), data.numAttributes());
+						arrayCost.add(new Costs(Manager.euclideanDistance(data.instance(c.getCentroidAt(id).getID()), data.instance(c.getCentroidAt(id).getID(i)), data.numAttributes()),c.getCentroidAt(id).getID(i)));
 					break;
 					case LEVENSHTEIN:
-						currentCost = Manager.computeLevenshteinDistance(data.instance(c.getCentroidAt(id).id).stringValue(0), data.instance(i).stringValue(0));
+						arrayCost.add(new Costs((double)Manager.computeLevenshteinDistance(data.instance(c.getCentroidAt(id).getID()).stringValue(0), data.instance(c.getCentroidAt(id).getID(i)).stringValue(0)),c.getCentroidAt(id).getID(i)));
 					break;
 					default:
 						System.err.println("Distance Error");
 					break;
-				}
-				if(currentCost > maxCost){
-					maxCost = currentCost;
 				}
 			}
-			for(int i=0; i<nElem; i++){
+//			System.out.println(currentCost + " " + id);
+			Collections.sort(arrayCost, new CostComparator());
+//			for(int i=0; i<nElem; i++){
+//				System.out.println("costo: " + arrayCost.get(i).getCost() + " - istanza: " + arrayCost.get(i).getInstance() + " id: " + id);
+//			}
+//			System.out.println("Cluster " + id + " old cost " + initCost);
+			minCost = initCost;
+			for(int i=0; i<Math.floor(I*nElem); i++){
 				currentCost = 0.0;
-				if(c.getCentroidAt(id).id == c.getCentroidAt(id).getID(i) && i<nElem-1){
-					i++;
-				}
-				switch(t){
-					case EUCLIDEAN:
-						currentCost = Manager.euclideanDistance(data.instance(c.getCentroidAt(id).id), data.instance(i), data.numAttributes());
-					break;
-					case LEVENSHTEIN:
-						currentCost = Manager.computeLevenshteinDistance(data.instance(c.getCentroidAt(id).id).stringValue(0), data.instance(i).stringValue(0));
-					break;
-					default:
-						System.err.println("Distance Error");
-					break;
-				}
-				if(currentCost > I*maxCost && i<nElem-1){
-					i++;
-				}
-				else{
-					currentCost = 0.0;
-					for(int j=0; j<nElem; j++){
-						switch(t){
-							case EUCLIDEAN:
-								currentCost += Manager.euclideanDistance(data.instance(i), data.instance(j), data.numAttributes());
-								break;
-							case LEVENSHTEIN:
-								currentCost += Manager.computeLevenshteinDistance(data.instance(i).stringValue(0), data.instance(j).stringValue(0));
-								break;
-							default:
-								System.err.println("Distance Error");
-								break;
-						}
+				for(int j=0; j<nElem; j++){
+					switch(t){
+						case EUCLIDEAN:
+							currentCost += Manager.euclideanDistance(data.instance(arrayCost.get(i).getInstance()), data.instance(arrayCost.get(j).getInstance()), data.numAttributes());
+							break;
+						case LEVENSHTEIN:
+							currentCost += Manager.computeLevenshteinDistance(data.instance(arrayCost.get(i).getInstance()).stringValue(0), data.instance(arrayCost.get(j).getInstance()).stringValue(0));
+							break;
+						default:
+							System.err.println("Distance Error");
+							break;
 					}
-					if(currentCost < minCost){
-						minCost = currentCost;
-						medoids[id] = c.getCentroidAt(id).getID(i);
-					}
+				}
+				if(currentCost <= minCost){
+					minCost = currentCost;
+					medoids[id] = arrayCost.get(i).getInstance();
 				}
 			}
 		}
-	}
+//		System.out.println("Cluster " + id + " costo " + minCost);
+//		System.out.println("Finish thread " + id);
 		
+	}
+	
+	static class CostComparator implements Comparator<Costs>{
+		@Override public int compare(Costs a, Costs b){
+			return a.cost < b.cost ? -1 :
+				a.cost == b.cost ? 0 : 1;
+		}
+	}
 }

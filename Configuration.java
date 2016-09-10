@@ -61,12 +61,13 @@ public class Configuration{
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
-				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
-					i++;
-				}
+//				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
+//					i++;
+//				}
 				switch(t){
 					case EUCLIDEAN: 
-						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+//						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+						costs[j] = Manager.euclideanDistance(data.instance(getCentroidAt(j).id), data.instance(i), data.numAttributes());
 						break;
 					case LEVENSHTEIN:
 						costs[j] = Centroid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
@@ -87,11 +88,11 @@ public class Configuration{
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-	//					getCentroidAt(index).addTotalCost(costs[jj]);
+//					getCentroidAt(index).addTotalCost(costs[jj]);
 					cost = costs[jj];
 				}
 			}
-			
+			getCentroidAt(index).addTotalCost(costs[index]);
 			getCentroidAt(index).addInstance(i, cost);
 		}		
 	}
@@ -99,58 +100,61 @@ public class Configuration{
 	private void buildNextConf(Instances data, int nClust, int[] centroidsID, DistanceType t){
 		clusterCount = nClust;
 		clusterStatus = new ArrayList<Centroid>();
-		for(Integer i : centroidsID){
-			clusterStatus.add(new Centroid(i));
+//		for(Integer i : centroidsID){
+//			clusterStatus.add(new Centroid(i));
+//		}
+		for(int i=0; i<centroidsID.length; i++){
+			clusterStatus.add(new Centroid(centroidsID[i]));
+		}
+		for(int i=0; i<data.numInstances(); i++){
+			double[] costs = new double[nClust];
+			for(int j=0; j<nClust; j++){
+//				if(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
+//					i++;
+//				}
+				switch(t){
+					case EUCLIDEAN: 
+//						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
+						costs[j] = Manager.euclideanDistance(data.instance(getCentroidAt(j).id), data.instance(i), data.numAttributes());
+					break;
+					case LEVENSHTEIN:
+						costs[j] = Centroid.computeLevenshteinDistance(data.instance(getCentroidAt(j).id).stringValue(0), data.instance(i).stringValue(0));
+					break;
+					default:
+						System.err.println("Distance Error");
+					break;
+				}
+			}
+			double min = Double.MAX_VALUE;
+			int index = 0;
+			for(int j=0; j<nClust; j++){
+				if(costs[j] < min){
+					min = costs[j];
+					index = j;
+				}
+			}
+			getCentroidAt(index).addTotalCost(costs[index]);
+			getCentroidAt(index).addInstance(i, costs[index]);
 		}
 //		for(int i=0;i<nClust;i++)
 			//	System.out.println(clusterStatus.get(i).getID());
 //			System.err.println(data.numInstances());
-		for(int i=0; i<data.numInstances(); i++){
-			double[] costs = new double[nClust];
-			for(int j=0; j<nClust; j++){
-				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
-					i++;
-				}
-				switch(t){
-				case EUCLIDEAN: 
-					costs[j] = getCentroidAt(j).euclideanDistance(i, data);
-					break;
-				case LEVENSHTEIN:
-					costs[j] = Centroid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
-					break;
-				}	
-				//System.out.println(costs[j] + " ");
-			}
-			int index = 0;
-			double cost = 0;
-			double min = Double.MAX_VALUE;
-			for(int jj=0; jj<nClust; jj++){
-				//System.out.println(costs[jj]);
-				if(costs[jj] < min){
-					min = costs[jj];
-					index = jj;
-//					getCentroidAt(index).addTotalCost(costs[jj]);
-					cost = costs[jj];
-				}
-			}
-			getCentroidAt(index).addInstance(i, cost);
-		}
 	}
 	
 	private void computeCost() {
 		this.result = 0.0;
-		for(Centroid c : clusterStatus){
-			result += c.getTotalCost();
-		}
 		clusterCount = clusterStatus.size();
+		for(int i=0; i<clusterCount; i++){
+			result += getCentroidAt(i).getTotalCost();
+		}
 	}
 	
-	public void printStatus(){
+	public void printStatus(Instances data){
 		System.out.println();
 		for(int i=0; i<clusterCount; i++){
-			System.out.print("[" + i + "]" + " ");
+			System.out.print("[" + i + " - " + data.instance(getCentroidAt(i).getID()).value(0) + "]" + " ");
 			for(int j=0; j<getCentroidAt(i).getInstanceList().size(); j++){
-				System.out.print(getCentroidAt(i).getInstanceList().get(j) + " ");
+				System.out.print(data.instance(getCentroidAt(i).getInstanceList().get(j)).value(0) + " ");
 			}
 			System.out.println();
 		}
@@ -256,7 +260,7 @@ public class Configuration{
 	public boolean isChanged(Configuration c){
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
-		for(int i=0; i<clusterStatus.size(); i++){
+		for(int i=0; i<clusterCount; i++){
 			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
 				if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
 					flag = true;
@@ -269,9 +273,9 @@ public class Configuration{
 	
 //	public boolean isChanged(Configuration c){
 //		//controllo che non ci siano stati scambi tra i cluster
-//		for(int i=0; i<clusterStatus.size(); i++){
-//			for(int j=0; j<clusterStatus.get(i).getNumElements(); j++){
-//				if(clusterStatus.get(i).getAllInstances().get(j) != c.getCentroidAt(i).getAllInstances().get(j)){
+//		for(int i=0; i<clusterCount; i++){
+//			for(int j=0; j<c.clusterCount; j++){
+//				if(getCentroidAt(i).getID() != c.getCentroidAt(j).getID()){
 //					return true;
 //				}
 //			}

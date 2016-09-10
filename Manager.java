@@ -2,7 +2,9 @@ package weka.clusterers;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+//import java.util.Comparator;
 import java.util.Random;
 
 import weka.core.Instances;
@@ -13,15 +15,16 @@ public class Manager {
 
 	private static Random rand;
 //	private static int MAX_THREADS = 4;
-	private static Instances data;
+	public static Instances data;
 	private static int nClust;
+	private static double costCV;
 	private static int seed;
 	private static double I;
 	private static int minClust, maxClust;
 	private static DistanceType t;
 	private static GoodnessType cgt;
-	private final int n_test = 1;
-	private static int kfold;
+	private final int n_test = 5;
+	private static int k;
 	
 	/*INPUT PARAMETERS
 	 * "EuclideanDistance" 2 10 "C:/Users/dav_0/Desktop/pam_big.arff" 1 1 10
@@ -62,9 +65,8 @@ public class Manager {
 		}
 		
 		I = Double.parseDouble(args[5]);
-		//aggiungere limite max di I come controllo
 
-		kfold = Integer.parseInt(args[6]);
+		k = Integer.parseInt(args[6]);
 		
 		rand = new Random(seed);
 		
@@ -73,7 +75,13 @@ public class Manager {
 		// variabile start per il calcolo del tempo di esecuzione
 		double startTime = System.nanoTime();
 		
-		nClust = crossValidation(data, t, rand, kfold);
+		ArrayList<CrossValidationValues> retCrossV = new ArrayList<CrossValidationValues>();
+		
+		retCrossV = crossValidation(data, t, rand, k);
+		CrossValidationValues val;
+		val = mostFrequentK(retCrossV);
+		nClust = val.getK();
+		costCV = val.getCostCV();
 		
 		double cg = 0.0;
 
@@ -90,7 +98,7 @@ public class Manager {
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime) / 1000000000;
 		System.out.println("Execution time: " + time + " s");
-		outputFile(time, optimalNClust, seed, nClust, I, t, cgt, cg, n_test);
+		outputFile(time, optimalNClust, seed, nClust, I, t, cgt, cg, n_test, k, costCV);
 		switch(t){
 			case EUCLIDEAN:
 				optimalNClust.outputARFF(data, args);
@@ -103,87 +111,137 @@ public class Manager {
 		}
 	}
 	
-	public int crossValidation(Instances data, DistanceType t, Random rand, int kfold) throws Exception{
+	public static CrossValidationValues mostFrequentK(ArrayList<CrossValidationValues> retCrossV){
+		System.out.println();
+		for(int i=0; i<retCrossV.size(); i++){
+			System.out.print(retCrossV.get(i).getK() + " ");
+		}
+		System.out.println();
+		Collections.sort(retCrossV, new KComparator());
+		int index = 0;
+		int nc = retCrossV.get(0).getK();
+		int tmp = 0;
+		int counter = 0;
+		
+		for(int i=0; i<retCrossV.size(); i++){
+			System.out.print(retCrossV.get(i).getK() + " ");
+		}
+		
+		for(int i=0; i<retCrossV.size(); i++){
+			if(nc == retCrossV.get(i).getK()){
+				tmp++;
+			}
+			else{
+				if(tmp >= counter){
+					index = i-1;
+					counter = tmp;
+				}
+				if(tmp == counter){
+					if(retCrossV.get(i).getCostCV() <= retCrossV.get(index).getCostCV()){
+						index = i-1;
+						counter = tmp;
+					}
+				}
+				nc = retCrossV.get(i).getK();
+				tmp = 1;
+			}
+		}
+		return retCrossV.get(index);
+	}
+	
+	static class KComparator implements Comparator<CrossValidationValues>{
+		@Override public int compare(CrossValidationValues a, CrossValidationValues b){
+			return a.getK() < b.getK() ? -1 :
+				a.getK() == b.getK() ? 0 : 1;
+		}
+	}
+	
+	public ArrayList<CrossValidationValues> crossValidation(Instances data, DistanceType t, Random rand, int k) throws Exception{
 		int tot = data.numInstances();
-		int test_qty = tot / kfold;
+		int test_qty = tot / k;
 		int train_qty = tot - test_qty;
 		int[] instances2train = new int[train_qty];
 		int[] instances2test = new int[test_qty];
 		
-		//istance per il file di training
-		for(int i=0; i<train_qty; i++){
-			int val = rand.nextInt(data.numInstances());
-			while(alreadyExist(instances2train, val)){
-				val = rand.nextInt(data.numInstances());
-			}
-			instances2train[i] = val;
-		}
-//		System.out.println(data.numInstances() + "Train: ");
-//		for(int i=0; i<train_qty; i++){
-//			System.out.print(instances2train[i] + ",");
-//		}
+		ArrayList<CrossValidationValues> valuesCV = new ArrayList<CrossValidationValues>();
 		
-		//istanze per il file di test
-		for(int i=0; i<test_qty; i++){
-			int val = rand.nextInt(data.numInstances());
-			while(alreadyExist(instances2train, val)){
-				val = rand.nextInt(data.numInstances());
-				for(int j=0; j<i; j++){
-					if(instances2test[j] == val){
-						val = rand.nextInt(data.numInstances());
+		for(int n=0; n<k; n++){
+			//istance per il file di training
+			for(int i=0; i<train_qty; i++){
+				int val = rand.nextInt(data.numInstances());
+				while(alreadyExist(instances2train, val)){
+					val = rand.nextInt(data.numInstances());
+				}
+				instances2train[i] = val;
+			}
+	//		System.out.println(data.numInstances() + "Train: ");
+	//		for(int i=0; i<train_qty; i++){
+	//			System.out.print(instances2train[i] + ",");
+	//		}
+			
+			//istanze per il file di test
+			for(int i=0; i<test_qty; i++){
+				int val = rand.nextInt(data.numInstances());
+				while(alreadyExist(instances2train, val)){
+					val = rand.nextInt(data.numInstances());
+					for(int j=0; j<i; j++){
+						if(instances2test[j] == val){
+							val = rand.nextInt(data.numInstances());
+						}
 					}
 				}
+				instances2test[i] = val;
 			}
-			instances2test[i] = val;
-		}
-		
-//		System.out.println("Test: ");
-//		for(int i=0; i<test_qty; i++){
-//			System.out.print(instances2test[i] + ",");
-//		}
-		String[] path = new String[2];
-		try{
-			switch(t){
-				case EUCLIDEAN:
-					path = createTrainingTestArff(data, instances2train, instances2test, "numeric", t);
-					break;
-				case LEVENSHTEIN:
-					path = createTrainingTestArff(data, instances2train, instances2test, "string", t);
-					break;
-				default:
-					System.err.println("Training/Test file error");
-					break;
+			
+	//		System.out.println("Test: ");
+	//		for(int i=0; i<test_qty; i++){
+	//			System.out.print(instances2test[i] + ",");
+	//		}
+			String[] path = new String[2];
+			try{
+				switch(t){
+					case EUCLIDEAN:
+						path = createTrainingTestArff(data, instances2train, instances2test, "numeric", t);
+						break;
+					case LEVENSHTEIN:
+						path = createTrainingTestArff(data, instances2train, instances2test, "string", t);
+						break;
+					default:
+						System.err.println("Training/Test file error");
+						break;
+				}
 			}
-		}
-		catch(Exception e){
-			System.err.println(e);
-		}
-		
-		//ricerca n cluster ottimale
-		double cost = Double.MAX_VALUE;
-		int nc = 0;
-		
-		BufferedReader trainReader = new BufferedReader(new FileReader(path[0]));
-		ArffReader trainArff = new ArffReader(trainReader);
-		Instances trainData = trainArff.getData();
-		BufferedReader testReader = new BufferedReader(new FileReader(path[1]));
-		ArffReader testArff = new ArffReader(testReader);
-		Instances testData = testArff.getData();
-		
-		Configuration optimal = null;
-
-		for (int m = minClust; m <= maxClust; m++) {
-			optimal = clusterization(trainData, m, rand, t);
-			double cv = 0.0;
-			cv = optimal.buildTestConfig(data, trainData, testData, t);
-			System.out.println("cv: " + cv + " cost: " + cost + " nc: " + nc);
-			if(cv < cost){
-				cost = cv;
-				nc = m;
+			catch(Exception e){
+				System.err.println(e);
 			}
+			
+			//ricerca n cluster ottimale
+			double cost = Double.MAX_VALUE;
+			int nc = 0;
+			
+			BufferedReader trainReader = new BufferedReader(new FileReader(path[0]));
+			ArffReader trainArff = new ArffReader(trainReader);
+			Instances trainData = trainArff.getData();
+			BufferedReader testReader = new BufferedReader(new FileReader(path[1]));
+			ArffReader testArff = new ArffReader(testReader);
+			Instances testData = testArff.getData();
+			
+			Configuration optimal = null;
+	
+			for (int m = minClust; m <= maxClust; m++) {
+				optimal = clusterization(trainData, m, rand, t);
+				double cv = 0.0;
+				cv = optimal.buildTestConfig(data, trainData, testData, t);
+				System.out.println("cv: " + cv + " cost: " + cost + " nc: " + nc);
+				if(cv < cost){
+					cost = cv;
+					nc = m;
+				}
+			}
+			System.out.println();
+			valuesCV.add(new CrossValidationValues(nc, cost));
 		}
-		System.out.println();
-		return nc;
+		return valuesCV;
 	}
 	
 	public static double euclideanDistance(Instance a, Instance b, int nAttr){
@@ -240,7 +298,7 @@ public class Manager {
 	public Configuration clusterization(Instances data, int nClust, Random rand, DistanceType t) throws Exception{
 		Configuration optimal = null;
 		Configuration firstConfig;
-		Configuration currentConfig;
+		Configuration currentConfig = null;
 		Configuration bestConfig = null;
 		int[] medoids = new int[nClust];
 		ArrayList<Integer> sizes;
@@ -255,31 +313,30 @@ public class Manager {
 				optimal = firstConfig.clone();
 			}
 //			firstConfig.printStatus();
-			bestConfig = firstConfig.clone();
+//			bestConfig = firstConfig.clone();
 			flag = true;			
 //			count = 0;
+//			System.out.println("tentativo numero: " + n);
 			while (flag) {
 //				System.err.println("count: " + count);
-//				printCluster(firstConfig, m);
 				sizes = new ArrayList<Integer>();
 				for (int i = 0; i < nClust; i++) {
 					sizes.add(firstConfig.getCentroidAt(i).getAllInstances().size());
 				}
 				medoids = bestMedoids(data, firstConfig,sizes, nClust, t);
 				currentConfig = new Configuration(data, nClust, medoids, t); 
-//				printCluster(bestConfig, nClust);
 //				printCluster(firstConfig, nClust);
+//				firstConfig.printStatus(data);
 //				System.out.println(firstConfig.getTotalCost());
-//				printCluster(bestConfig, nClust);
-//				System.out.println(bestConfig.getTotalCost());
-				if(currentConfig.isBetterThan(bestConfig)){
-					bestConfig = currentConfig.clone();
-				}
-				flag = bestConfig.isChanged(firstConfig);
-				firstConfig = bestConfig.clone();
+//				printCluster(currentConfig, nClust);
+//				currentConfig.printStatus(data);
+//				System.out.println(currentConfig.getTotalCost());
+				
+				flag = currentConfig.isChanged(firstConfig);
+				firstConfig = currentConfig.clone();
 //				count++;
 			}
-			
+			bestConfig = currentConfig.clone();
 			if(bestConfig.isBetterThan(optimal)){
 				optimal = bestConfig.clone();
 			}
@@ -396,7 +453,7 @@ public class Manager {
 
 	public static void printCluster(Configuration c, int nClust) {
 		for (int i = 0; i < nClust; i++) {
-			System.out.println("Cluster " + "[" + i + "]");
+			System.out.println("Cluster " + "[" + i +"]");
 			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
 			System.out.print("Elements [ ");
 			for (int l : c.getCentroidAt(i).getAllInstances()) {
@@ -416,7 +473,7 @@ public class Manager {
 		}
 	}
 
-	public static void outputFile(double time, Configuration c, int seed, int nClust, double I, DistanceType t, GoodnessType cgt, double cg, int n_test) throws Exception{
+	public static void outputFile(double time, Configuration c, int seed, int nClust, double I, DistanceType t, GoodnessType cgt, double cg, int n_test, int k, double costCV) throws Exception{
 		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputValues.arff"));
 		bw.write("Dati Clusterizzazione");
 		bw.newLine();
@@ -427,7 +484,9 @@ public class Manager {
 		bw.newLine();
 		bw.append("GoodnessType: " + cgt.toString());
 		bw.newLine();
-		bw.append("K: " + I);
+		bw.append("I: " + I);
+		bw.newLine();
+		bw.append("k: " + k);
 		bw.newLine();
 		bw.append("Numero test: " + n_test);
 		bw.newLine();
@@ -442,6 +501,8 @@ public class Manager {
 		for(int i=0; i<nClust; i++){
 			bw.append("(" + c.getCentroidAt(i).getNumElements() + ") ");
 		}
+		bw.newLine();
+		bw.append("Cross-Validation cost: " + costCV);
 		bw.newLine();
 		bw.append("Clusters Goodness: " + cg);
 		bw.newLine();
