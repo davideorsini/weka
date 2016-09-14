@@ -6,7 +6,7 @@ import java.util.*;
 import weka.core.Instances;
 
 public class Configuration{
-	private ArrayList<Centroid> clusterStatus;
+	private ArrayList<Medoid> clusterStatus;
 	private double result = 0.0;
 	private int clusterCount;
 	
@@ -15,12 +15,12 @@ public class Configuration{
 		computeCost();
 	}
 	
-	public Configuration(Instances data, int nClust, int[] centroidsID, DistanceType t) {
-		buildNextConf(data, nClust, centroidsID, t);
+	public Configuration(Instances data, int nClust, int[] medoidsID, DistanceType t) {
+		buildNextConf(data, nClust, medoidsID, t);
 		computeCost();
 	}
 	
-	private Configuration(ArrayList<Centroid> clusterStatus) {
+	private Configuration(ArrayList<Medoid> clusterStatus) {
 		this.clusterStatus = clusterStatus;
 		computeCost();
 	}
@@ -32,10 +32,10 @@ public class Configuration{
 			for(int j=0; j<clusterCount; j++){
 				switch(t){
 				case EUCLIDEAN: 
-					costs[j] = getCentroidAt(j).euclideanDistance(i, trainData, testData);
+					costs[j] = getMedoidAt(j).euclideanDistance(i, trainData, testData);
 					break;
 				case LEVENSHTEIN:
-					costs[j] = Centroid.computeLevenshteinDistance(testData.instance(i).stringValue(0), trainData.instance(getCentroidAt(j).getID()).stringValue(0));
+					costs[j] = Medoid.computeLevenshteinDistance(testData.instance(i).stringValue(0), trainData.instance(getMedoidAt(j).getID()).stringValue(0));
 					break;
 				default:
 					System.err.println("Undefined Distance");
@@ -57,20 +57,20 @@ public class Configuration{
 	
 	private void buildFirstConf(Instances data, int nClust, Random rand, DistanceType t){
 		clusterCount = nClust;
-		clusterStatus = chooseRandomCentroid(nClust, rand, data);
+		clusterStatus = chooseRandomMedoid(nClust, rand, data);
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
-//				while(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
+//				while(i == getMedoidAt(j).getID() && i < data.numInstances()-1){
 //					i++;
 //				}
 				switch(t){
 					case EUCLIDEAN: 
-//						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
-						costs[j] = Manager.euclideanDistance(data.instance(getCentroidAt(j).id), data.instance(i), data.numAttributes());
+//						costs[j] = getMedoidAt(j).euclideanDistance(i, data);
+						costs[j] = Manager.euclideanDistance(data.instance(getMedoidAt(j).id), data.instance(i), data.numAttributes());
 						break;
 					case LEVENSHTEIN:
-						costs[j] = Centroid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
+						costs[j] = Medoid.computeLevenshteinDistance(data.instance(j).stringValue(0), data.instance(i).stringValue(0));
 						break;
 					default:
 						System.err.println("Undefined Distance");
@@ -88,37 +88,37 @@ public class Configuration{
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-//					getCentroidAt(index).addTotalCost(costs[jj]);
+//					getMedoidAt(index).addTotalCost(costs[jj]);
 					cost = costs[jj];
 				}
 			}
-			getCentroidAt(index).addTotalCost(costs[index]);
-			getCentroidAt(index).addInstance(i, cost);
+			getMedoidAt(index).addTotalCost(costs[index]);
+			getMedoidAt(index).addInstance(i, cost);
 		}		
 	}
 	
-	private void buildNextConf(Instances data, int nClust, int[] centroidsID, DistanceType t){
+	private void buildNextConf(Instances data, int nClust, int[] medoidsID, DistanceType t){
 		clusterCount = nClust;
-		clusterStatus = new ArrayList<Centroid>();
-//		for(Integer i : centroidsID){
-//			clusterStatus.add(new Centroid(i));
+		clusterStatus = new ArrayList<Medoid>();
+//		for(Integer i : medoidsID){
+//			clusterStatus.add(new Medoid(i));
 //		}
-		for(int i=0; i<centroidsID.length; i++){
-			clusterStatus.add(new Centroid(centroidsID[i]));
+		for(int i=0; i<medoidsID.length; i++){
+			clusterStatus.add(new Medoid(medoidsID[i]));
 		}
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
-//				if(i == getCentroidAt(j).getID() && i < data.numInstances()-1){
+//				if(i == getMedoidAt(j).getID() && i < data.numInstances()-1){
 //					i++;
 //				}
 				switch(t){
 					case EUCLIDEAN: 
-//						costs[j] = getCentroidAt(j).euclideanDistance(i, data);
-						costs[j] = Manager.euclideanDistance(data.instance(getCentroidAt(j).id), data.instance(i), data.numAttributes());
+//						costs[j] = getMedoidAt(j).euclideanDistance(i, data);
+						costs[j] = Manager.euclideanDistance(data.instance(getMedoidAt(j).id), data.instance(i), data.numAttributes());
 					break;
 					case LEVENSHTEIN:
-						costs[j] = Centroid.computeLevenshteinDistance(data.instance(getCentroidAt(j).id).stringValue(0), data.instance(i).stringValue(0));
+						costs[j] = Medoid.computeLevenshteinDistance(data.instance(getMedoidAt(j).id).stringValue(0), data.instance(i).stringValue(0));
 					break;
 					default:
 						System.err.println("Distance Error");
@@ -133,8 +133,8 @@ public class Configuration{
 					index = j;
 				}
 			}
-			getCentroidAt(index).addTotalCost(costs[index]);
-			getCentroidAt(index).addInstance(i, costs[index]);
+			getMedoidAt(index).addTotalCost(costs[index]);
+			getMedoidAt(index).addInstance(i, costs[index]);
 		}
 //		for(int i=0;i<nClust;i++)
 			//	System.out.println(clusterStatus.get(i).getID());
@@ -145,16 +145,16 @@ public class Configuration{
 		this.result = 0.0;
 		clusterCount = clusterStatus.size();
 		for(int i=0; i<clusterCount; i++){
-			result += getCentroidAt(i).getTotalCost();
+			result += getMedoidAt(i).getTotalCost();
 		}
 	}
 	
 	public void printStatus(Instances data){
 		System.out.println();
 		for(int i=0; i<clusterCount; i++){
-			System.out.print("[" + i + " - " + data.instance(getCentroidAt(i).getID()).value(0) + "]" + " ");
-			for(int j=0; j<getCentroidAt(i).getInstanceList().size(); j++){
-				System.out.print(data.instance(getCentroidAt(i).getInstanceList().get(j)).value(0) + " ");
+			System.out.print("[" + i + " - " + data.instance(getMedoidAt(i).getID()).value(0) + "]" + " ");
+			for(int j=0; j<getMedoidAt(i).getInstanceList().size(); j++){
+				System.out.print(data.instance(getMedoidAt(i).getInstanceList().get(j)).value(0) + " ");
 			}
 			System.out.println();
 		}
@@ -163,7 +163,7 @@ public class Configuration{
 	
 	public void outputARFF(Instances data, String[] args) throws Exception{
 		ArrayList<Integer> mc = membershipCluster(data);
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/output.arff"));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"/Desktop/output.arff"));
 		bw.write("@relation " + args[3]);
 		bw.newLine();
 		bw.newLine();
@@ -199,7 +199,7 @@ public class Configuration{
 	public void outputStringARFF(Instances data, String[] args) throws Exception{
 		ArrayList<Integer> mc = membershipCluster(data);
 		System.out.println("size mc: " + mc.size());
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputString.arff"));
+		BufferedWriter bw = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"/Desktop/outputString.arff"));
 		bw.write("@relation " + args[3]);
 		bw.newLine();
 		bw.newLine();
@@ -232,7 +232,7 @@ public class Configuration{
 		ArrayList<Integer> mc = new ArrayList<Integer>();
 		for(int index=0; index<data.numInstances(); index++){
 			for(int i=0; i< clusterStatus.size(); i++){
-				if(getCentroidAt(i).alreadyExist(index)){
+				if(getMedoidAt(i).alreadyExist(index)){
 					mc.add(i);
 				}
 			}
@@ -244,7 +244,7 @@ public class Configuration{
 		return result;
 	}
 	
-	public Centroid getCentroidAt(int index){
+	public Medoid getMedoidAt(int index){
 		return this.clusterStatus.get(index);
 	}
 	
@@ -261,8 +261,8 @@ public class Configuration{
 		//controllo che non ci siano stati scambi tra i cluster
 		boolean flag = false;
 		for(int i=0; i<clusterCount; i++){
-			if(getCentroidAt(i).getID() != c.getCentroidAt(i).getID()){
-				if(!getCentroidAt(i).equals(c.getCentroidAt(i))){
+			if(getMedoidAt(i).getID() != c.getMedoidAt(i).getID()){
+				if(!getMedoidAt(i).equals(c.getMedoidAt(i))){
 					flag = true;
 					break;
 				}
@@ -275,7 +275,7 @@ public class Configuration{
 //		//controllo che non ci siano stati scambi tra i cluster
 //		for(int i=0; i<clusterCount; i++){
 //			for(int j=0; j<c.clusterCount; j++){
-//				if(getCentroidAt(i).getID() != c.getCentroidAt(j).getID()){
+//				if(getMedoidAt(i).getID() != c.getMedoidAt(j).getID()){
 //					return true;
 //				}
 //			}
@@ -283,32 +283,32 @@ public class Configuration{
 //		return false;
 //	}
 	
-	public static ArrayList<Centroid> chooseRandomCentroid(int nClust, Random rand, Instances data){
+	public static ArrayList<Medoid> chooseRandomMedoid(int nClust, Random rand, Instances data){
 //		Random randInstanceIndex = new Random(seed);
 		Random randInstanceIndex = rand;
-		ArrayList<Centroid> centroidList = new ArrayList<Centroid>();
-		int centroidIndex;// = randInstanceIndex.nextInt(data.numInstances());
-//		centroidList.add(new Centroid(centroidIndex));
+		ArrayList<Medoid> medoidList = new ArrayList<Medoid>();
+		int medoidIndex;// = randInstanceIndex.nextInt(data.numInstances());
+//		medoidList.add(new Medoid(medoidIndex));
 		for(int i=0; i<nClust; i++){
 			int j=0;
-			centroidIndex = randInstanceIndex.nextInt(data.numInstances());
-			while(j<centroidList.size()){
-				for(int k=0; k<centroidList.size(); k++){
-					if(centroidIndex != centroidList.get(k).getID()){
+			medoidIndex = randInstanceIndex.nextInt(data.numInstances());
+			while(j<medoidList.size()){
+				for(int k=0; k<medoidList.size(); k++){
+					if(medoidIndex != medoidList.get(k).getID()){
 						j++;
 					}
 					else{
-						centroidIndex = randInstanceIndex.nextInt(data.numInstances());
+						medoidIndex = randInstanceIndex.nextInt(data.numInstances());
 						k = 0;
 						j = 0;
 					}
 				}
 			}
-			centroidList.add(new Centroid(centroidIndex));
-			centroidList.get(i).setClusterID(i);
+			medoidList.add(new Medoid(medoidIndex));
+			medoidList.get(i).setClusterID(i);
 		}
-		//printStatus(centroidList);
-		return centroidList;
+		//printStatus(medoidList);
+		return medoidList;
 	}
 	
 	public int retClusterCount(){

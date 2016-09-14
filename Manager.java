@@ -23,12 +23,12 @@ public class Manager {
 	private static int minClust, maxClust;
 	private static DistanceType t;
 	private static GoodnessType cgt;
-	private final int n_test = 5;
+	private final int n_test = 20;
 	private static int k;
 	
 	/*INPUT PARAMETERS
-	 * "EuclideanDistance" 2 10 "C:/Users/dav_0/Desktop/pam_big.arff" 1 1 10
-	 * "LevenshteinDistance" 2 10 "C:/Users/dav_0/Desktop/stringTest.arff" 1 1 10
+	 * "EuclideanDistance" 2 10 "C:/Users/dav_0/Desktop/pam_big.arff" 1 1 10 fileN
+	 * "LevenshteinDistance" 2 10 "C:/Users/dav_0/Desktop/stringTest.arff" 1 1 10 fileN
 	 */
 
 	public Manager(String[] args) throws Exception {
@@ -68,6 +68,8 @@ public class Manager {
 
 		k = Integer.parseInt(args[6]);
 		
+		int fileN = Integer.parseInt(args[7]);
+		
 		rand = new Random(seed);
 		
 		Configuration optimalNClust = null;
@@ -98,7 +100,7 @@ public class Manager {
 		double endTime = System.nanoTime();
 		double time = (endTime - startTime) / 1000000000;
 		System.out.println("Execution time: " + time + " s");
-		outputFile(time, optimalNClust, seed, nClust, I, t, cgt, cg, n_test, k, costCV);
+		outputFile(time, optimalNClust, seed, nClust, I, t, cgt, cg, n_test, k, costCV, fileN, filePath);
 		switch(t){
 			case EUCLIDEAN:
 				optimalNClust.outputARFF(data, args);
@@ -132,16 +134,16 @@ public class Manager {
 				tmp++;
 			}
 			else{
-				if(tmp >= counter){
+				if(tmp > counter){	//c'era anche l'uguale
 					index = i-1;
 					counter = tmp;
 				}
-				if(tmp == counter){
+				/*if(tmp == counter){
 					if(retCrossV.get(i).getCostCV() <= retCrossV.get(index).getCostCV()){
 						index = i-1;
 						counter = tmp;
 					}
-				}
+				}*/
 				nc = retCrossV.get(i).getK();
 				tmp = 1;
 			}
@@ -321,7 +323,7 @@ public class Manager {
 //				System.err.println("count: " + count);
 				sizes = new ArrayList<Integer>();
 				for (int i = 0; i < nClust; i++) {
-					sizes.add(firstConfig.getCentroidAt(i).getAllInstances().size());
+					sizes.add(firstConfig.getMedoidAt(i).getAllInstances().size());
 				}
 				medoids = bestMedoids(data, firstConfig,sizes, nClust, t);
 				currentConfig = new Configuration(data, nClust, medoids, t); 
@@ -357,8 +359,8 @@ public class Manager {
 	
 	public static String[] createTrainingTestArff(Instances data, int[] instances2train, int[] instances2test, String type, DistanceType t) throws IOException{
 		String[] path = new String[2];
-		path[0] = "C:/Users/dav_0/Desktop/training.arff"; //trainPath
-		path[1] = "C:/Users/dav_0/Desktop/test.arff"; //testPath 
+		path[0] = System.getProperty("user.home") + "/Desktop/training.arff"; //trainPath
+		path[1] = System.getProperty("user.home") + "/Desktop/test.arff"; //testPath 
 		for(int f=0; f<2; f++){
 			BufferedWriter bw = new BufferedWriter(new FileWriter(path[f]));
 			if(f == 0){
@@ -435,7 +437,7 @@ public class Manager {
 				double max = 0.0;
 				int val = 0;
 				for (int i = 0; i < c.retClusterCount(); i++) {
-					val = c.getCentroidAt(i).getNumElements();
+					val = c.getMedoidAt(i).getNumElements();
 					if (val < min) {
 						min = val;
 					}
@@ -454,29 +456,31 @@ public class Manager {
 	public static void printCluster(Configuration c, int nClust) {
 		for (int i = 0; i < nClust; i++) {
 			System.out.println("Cluster " + "[" + i +"]");
-			System.out.println("Centroid " + "[" + c.getCentroidAt(i).id + "]");
+			System.out.println("Medoid " + "[" + c.getMedoidAt(i).id + "]");
 			System.out.print("Elements [ ");
-			for (int l : c.getCentroidAt(i).getAllInstances()) {
+			for (int l : c.getMedoidAt(i).getAllInstances()) {
 				System.out.print(l + " ");
 			}
 			System.out.print("]");
 			System.out.println();
-			System.out.println("Num. of elements " + c.getCentroidAt(i).getNumElements());
+			System.out.println("Num. of elements " + c.getMedoidAt(i).getNumElements());
 			System.out.println();
 		}
 	}
 
-	public static void printStatus(ArrayList<Centroid> cluster) {
-		System.out.print("Centroids: ");
+	public static void printStatus(ArrayList<Medoid> cluster) {
+		System.out.print("Medoids: ");
 		for (int i = 0; i < cluster.size(); i++) {
 			System.out.print(cluster.get(i).getID() + " ");
 		}
 	}
 
-	public static void outputFile(double time, Configuration c, int seed, int nClust, double I, DistanceType t, GoodnessType cgt, double cg, int n_test, int k, double costCV) throws Exception{
-		BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/dav_0/Desktop/outputValues.arff"));
+	public static void outputFile(double time, Configuration c, int seed, int nClust, double I, DistanceType t, GoodnessType cgt, double cg, int n_test, int k, double costCV, int fileN, String filePath) throws Exception{
+		BufferedWriter bw = new BufferedWriter(new FileWriter(System.getProperty("user.home")+"/Desktop/outputValues"+fileN+".txt"));
 		bw.write("Dati Clusterizzazione");
 		bw.newLine();
+		bw.newLine();
+		bw.append("File ARFF: " + filePath);
 		bw.newLine();
 		bw.append("Seed: " + seed);
 		bw.newLine();
@@ -492,17 +496,19 @@ public class Manager {
 		bw.newLine();
 		bw.append("Numero Cluster: " + nClust);
 		bw.newLine();
-		bw.append("Centroidi: ");
+		bw.append("Medoidi: ");
 		for(int i=0; i<nClust; i++){
-			bw.append("{" + c.getCentroidAt(i).getID() + "} ");
+			bw.append("{" + c.getMedoidAt(i).getID() + "} ");
 		}
 		bw.newLine();
 		bw.append("Elementi: ");
 		for(int i=0; i<nClust; i++){
-			bw.append("(" + c.getCentroidAt(i).getNumElements() + ") ");
+			bw.append("(" + c.getMedoidAt(i).getNumElements() + ") ");
 		}
 		bw.newLine();
 		bw.append("Cross-Validation cost: " + costCV);
+		bw.newLine();
+		bw.append("Likelihood: -" + Math.log(costCV)/Math.log(2));
 		bw.newLine();
 		bw.append("Clusters Goodness: " + cg);
 		bw.newLine();

@@ -39,19 +39,19 @@ public class Task implements Runnable{
 		ArrayList<Costs> arrayCost = new ArrayList<Costs>();
 		double currentCost = 0.0;
 		double minCost = 0.0;
-		double initCost = c.getCentroidAt(id).getTotalCost();
+		double initCost = c.getMedoidAt(id).getTotalCost();
 //		System.out.println(initCost + " " + c.getTotalCost());
 		if(I == 0.0){
-			medoids[id] = c.getCentroidAt(id).id;
+			medoids[id] = c.getMedoidAt(id).id;
 		}
 		else{
 			for(int i=0; i<nElem; i++){
 				switch(t){
 					case EUCLIDEAN:
-						arrayCost.add(new Costs(Manager.euclideanDistance(data.instance(c.getCentroidAt(id).getID()), data.instance(c.getCentroidAt(id).getID(i)), data.numAttributes()),c.getCentroidAt(id).getID(i)));
+						arrayCost.add(new Costs(Manager.euclideanDistance(data.instance(c.getMedoidAt(id).getID()), data.instance(c.getMedoidAt(id).getID(i)), data.numAttributes()),c.getMedoidAt(id).getID(i)));
 					break;
 					case LEVENSHTEIN:
-						arrayCost.add(new Costs((double)Manager.computeLevenshteinDistance(data.instance(c.getCentroidAt(id).getID()).stringValue(0), data.instance(c.getCentroidAt(id).getID(i)).stringValue(0)),c.getCentroidAt(id).getID(i)));
+						arrayCost.add(new Costs((double)Manager.computeLevenshteinDistance(data.instance(c.getMedoidAt(id).getID()).stringValue(0), data.instance(c.getMedoidAt(id).getID(i)).stringValue(0)),c.getMedoidAt(id).getID(i)));
 					break;
 					default:
 						System.err.println("Distance Error");
@@ -80,7 +80,7 @@ public class Task implements Runnable{
 							break;
 					}
 				}
-				if(currentCost <= minCost){
+				if(currentCost < minCost){
 					minCost = currentCost;
 					medoids[id] = arrayCost.get(i).getInstance();
 				}
