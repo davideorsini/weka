@@ -10,15 +10,9 @@ import weka.core.Instances;
 
 public class Task implements Runnable{
 	private Instances data;
-//	private int nClust;
 	private int id;
-//	private Configuration[] configs;
-//	private long qty;
-//	private int[][] randCombs_id;
 	private DistanceType t;
-//	private Combinations comb;
 	private int[] medoids;
-//	private ArrayList<Integer> sizes;
 	private int nElem;
 	private Configuration c;
 	private double I;
@@ -34,13 +28,10 @@ public class Task implements Runnable{
 	}
 	
 	public void run(){
-//		System.out.println(nElem);
-//		System.out.println("Start thread " + id);
 		ArrayList<Costs> arrayCost = new ArrayList<Costs>();
 		double currentCost = 0.0;
 		double minCost = 0.0;
 		double initCost = c.getMedoidAt(id).getTotalCost();
-//		System.out.println(initCost + " " + c.getTotalCost());
 		if(I == 0.0){
 			medoids[id] = c.getMedoidAt(id).id;
 		}
@@ -58,12 +49,7 @@ public class Task implements Runnable{
 					break;
 				}
 			}
-//			System.out.println(currentCost + " " + id);
 			Collections.sort(arrayCost, new CostComparator());
-//			for(int i=0; i<nElem; i++){
-//				System.out.println("costo: " + arrayCost.get(i).getCost() + " - istanza: " + arrayCost.get(i).getInstance() + " id: " + id);
-//			}
-//			System.out.println("Cluster " + id + " old cost " + initCost);
 			minCost = initCost;
 			for(int i=0; i<Math.floor(I*nElem); i++){
 				currentCost = 0.0;
@@ -86,9 +72,6 @@ public class Task implements Runnable{
 				}
 			}
 		}
-//		System.out.println("Cluster " + id + " costo " + minCost);
-//		System.out.println("Finish thread " + id);
-		
 	}
 	
 	static class CostComparator implements Comparator<Costs>{

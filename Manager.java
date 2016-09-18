@@ -88,13 +88,9 @@ public class Manager {
 		double cg = 0.0;
 
 		optimalNClust = clusterization(data, nClust, rand, t);
-		// System.out.println("threads terminated " + count);
 
-		// printCluster(firstConfig, nClust);
-		// printCluster(bestConfig, nClust);
 		printCluster(optimalNClust, nClust);
 		cg = clusterGoodness(optimalNClust, cgt);
-		// double p = clusterGoodness(bestConfig);
 
 		// variabile fine calcolo del tempo di esecuzione
 		double endTime = System.nanoTime();
@@ -176,10 +172,6 @@ public class Manager {
 				}
 				instances2train[i] = val;
 			}
-	//		System.out.println(data.numInstances() + "Train: ");
-	//		for(int i=0; i<train_qty; i++){
-	//			System.out.print(instances2train[i] + ",");
-	//		}
 			
 			//istanze per il file di test
 			for(int i=0; i<test_qty; i++){
@@ -195,10 +187,6 @@ public class Manager {
 				instances2test[i] = val;
 			}
 			
-	//		System.out.println("Test: ");
-	//		for(int i=0; i<test_qty; i++){
-	//			System.out.print(instances2test[i] + ",");
-	//		}
 			String[] path = new String[2];
 			try{
 				switch(t){
@@ -247,9 +235,6 @@ public class Manager {
 	}
 	
 	public static double euclideanDistance(Instance a, Instance b, int nAttr){
-//		System.err.println(a.value(0));
-//		System.err.println(b.value(0));
-//		System.err.println(a.value(0)+b.value(0));
 		double cost = 0;
 		for(int i=0; i<nAttr; i++){
 			cost += Math.pow(a.value(i) - b.value(i),2);
@@ -298,52 +283,34 @@ public class Manager {
 	}
 	
 	public Configuration clusterization(Instances data, int nClust, Random rand, DistanceType t) throws Exception{
-		Configuration optimal = null;
 		Configuration firstConfig;
 		Configuration currentConfig = null;
 		Configuration bestConfig = null;
 		int[] medoids = new int[nClust];
 		ArrayList<Integer> sizes;
-//		int count = 0;
 		boolean flag = true;
 		
 		for(int n=0; n<n_test; n++){
-//			System.err.println("ntest: " + n);
 			firstConfig = new Configuration(data, nClust, rand, t);
-//			printCluster(firstConfig, nClust);
-			if (optimal == null) {
-				optimal = firstConfig.clone();
+			if (bestConfig == null) {
+				bestConfig = firstConfig.clone();
 			}
-//			firstConfig.printStatus();
-//			bestConfig = firstConfig.clone();
 			flag = true;			
-//			count = 0;
-//			System.out.println("tentativo numero: " + n);
 			while (flag) {
-//				System.err.println("count: " + count);
 				sizes = new ArrayList<Integer>();
 				for (int i = 0; i < nClust; i++) {
 					sizes.add(firstConfig.getMedoidAt(i).getAllInstances().size());
 				}
 				medoids = bestMedoids(data, firstConfig,sizes, nClust, t);
 				currentConfig = new Configuration(data, nClust, medoids, t); 
-//				printCluster(firstConfig, nClust);
-//				firstConfig.printStatus(data);
-//				System.out.println(firstConfig.getTotalCost());
-//				printCluster(currentConfig, nClust);
-//				currentConfig.printStatus(data);
-//				System.out.println(currentConfig.getTotalCost());
-				
 				flag = currentConfig.isChanged(firstConfig);
 				firstConfig = currentConfig.clone();
-//				count++;
 			}
-			bestConfig = currentConfig.clone();
-			if(bestConfig.isBetterThan(optimal)){
-				optimal = bestConfig.clone();
+			if(currentConfig.isBetterThan(bestConfig)){
+				bestConfig = currentConfig.clone();
 			}
 		}
-		return optimal;
+		return bestConfig;
 	}
 	
 	public static boolean alreadyExist(int[] instances, int a){

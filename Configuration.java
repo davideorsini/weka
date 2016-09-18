@@ -44,7 +44,6 @@ public class Configuration{
 			double cost = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<clusterCount; jj++){
-				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
 					cost = costs[jj];
@@ -61,12 +60,8 @@ public class Configuration{
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
-//				while(i == getMedoidAt(j).getID() && i < data.numInstances()-1){
-//					i++;
-//				}
 				switch(t){
 					case EUCLIDEAN: 
-//						costs[j] = getMedoidAt(j).euclideanDistance(i, data);
 						costs[j] = Manager.euclideanDistance(data.instance(getMedoidAt(j).id), data.instance(i), data.numAttributes());
 						break;
 					case LEVENSHTEIN:
@@ -75,8 +70,6 @@ public class Configuration{
 					default:
 						System.err.println("Undefined Distance");
 				}
-					
-				//System.out.println(costs[j] + " ");
 			}
 			
 			//assegno l'istanza al cluster piu' vicino
@@ -84,11 +77,9 @@ public class Configuration{
 			double cost = 0;
 			double min = Double.MAX_VALUE;
 			for(int jj=0; jj<nClust; jj++){
-				//System.out.println(costs[jj]);
 				if(costs[jj] < min){
 					min = costs[jj];
 					index = jj;
-//					getMedoidAt(index).addTotalCost(costs[jj]);
 					cost = costs[jj];
 				}
 			}
@@ -100,21 +91,14 @@ public class Configuration{
 	private void buildNextConf(Instances data, int nClust, int[] medoidsID, DistanceType t){
 		clusterCount = nClust;
 		clusterStatus = new ArrayList<Medoid>();
-//		for(Integer i : medoidsID){
-//			clusterStatus.add(new Medoid(i));
-//		}
 		for(int i=0; i<medoidsID.length; i++){
 			clusterStatus.add(new Medoid(medoidsID[i]));
 		}
 		for(int i=0; i<data.numInstances(); i++){
 			double[] costs = new double[nClust];
 			for(int j=0; j<nClust; j++){
-//				if(i == getMedoidAt(j).getID() && i < data.numInstances()-1){
-//					i++;
-//				}
 				switch(t){
 					case EUCLIDEAN: 
-//						costs[j] = getMedoidAt(j).euclideanDistance(i, data);
 						costs[j] = Manager.euclideanDistance(data.instance(getMedoidAt(j).id), data.instance(i), data.numAttributes());
 					break;
 					case LEVENSHTEIN:
@@ -136,9 +120,6 @@ public class Configuration{
 			getMedoidAt(index).addTotalCost(costs[index]);
 			getMedoidAt(index).addInstance(i, costs[index]);
 		}
-//		for(int i=0;i<nClust;i++)
-			//	System.out.println(clusterStatus.get(i).getID());
-//			System.err.println(data.numInstances());
 	}
 	
 	private void computeCost() {
@@ -250,7 +231,6 @@ public class Configuration{
 	
 	public boolean isBetterThan(Configuration c){
 		//controllo che il costo totale sia minore
-//		System.out.println(c.getTotalCost() + " >= " + result + "?");
 		if(c.getTotalCost() < result){
 			return false;
 		}
@@ -271,24 +251,10 @@ public class Configuration{
 		return flag;
 	}
 	
-//	public boolean isChanged(Configuration c){
-//		//controllo che non ci siano stati scambi tra i cluster
-//		for(int i=0; i<clusterCount; i++){
-//			for(int j=0; j<c.clusterCount; j++){
-//				if(getMedoidAt(i).getID() != c.getMedoidAt(j).getID()){
-//					return true;
-//				}
-//			}
-//		}
-//		return false;
-//	}
-	
 	public static ArrayList<Medoid> chooseRandomMedoid(int nClust, Random rand, Instances data){
-//		Random randInstanceIndex = new Random(seed);
 		Random randInstanceIndex = rand;
 		ArrayList<Medoid> medoidList = new ArrayList<Medoid>();
-		int medoidIndex;// = randInstanceIndex.nextInt(data.numInstances());
-//		medoidList.add(new Medoid(medoidIndex));
+		int medoidIndex;
 		for(int i=0; i<nClust; i++){
 			int j=0;
 			medoidIndex = randInstanceIndex.nextInt(data.numInstances());
@@ -307,7 +273,6 @@ public class Configuration{
 			medoidList.add(new Medoid(medoidIndex));
 			medoidList.get(i).setClusterID(i);
 		}
-		//printStatus(medoidList);
 		return medoidList;
 	}
 	

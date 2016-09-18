@@ -74,7 +74,6 @@ public class Medoid extends Instance{
 	}
 	
 	public boolean equals(Medoid c){
-//		return getAllInstances().equals(c.getAllInstances());
 		ArrayList<Integer> a = getAllInstances();
 		ArrayList<Integer> b = c.getAllInstances();
 		if(a.size() != b.size()){
